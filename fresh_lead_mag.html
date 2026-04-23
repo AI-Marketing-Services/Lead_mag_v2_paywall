@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VendingPreneur — See What Your Route Could Earn</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary:    #1F9AC5;
+  --primary-dark: #0D5E78;
+  --primary-light: #6BCFF0;
+  --accent:     #A2F2D4;
+  --accent-dark: #0086A8;
+  --accent-light: #38CFF3;
+  --bg-light:   #E8FAFF;
+  --bg-lighter: #F8FCFE;
+  --bg-mint:    #E0F7F5;
+  --text:       #1E1E1E;
+  --text-mid:   #3A3A3A;
+  --text-light: #B9B9B9;
+  --white:      #FFFFFF;
+  --navy:       #0D5E78;
+  --navy-2:     #1F9AC5;
+  --navy-3:     #6BCFF0;
+  --gold:       #1F9AC5;
+  --gold-2:     #6BCFF0;
+  --green:      #0D5E78;
+  --green-2:    #A2F2D4;
+  --red:        #D94F3D;
+  --cream:      #F8FCFE;
+  --cream-2:    #E8FAFF;
+  --card-bg:    #E8FAFF;
+  --card-text:  #1E1E1E;
+  --card-text-mid: #3A3A3A;
+  --card-border: rgba(31,154,197,0.2);
+  --border:     rgba(31,154,197,0.15);
+  --border-2:   rgba(31,154,197,0.08);
+  --shadow-sm:  0 2px 8px rgba(13,94,120,0.08);
+  --shadow-md:  0 6px 24px rgba(13,94,120,0.12);
+  --shadow-lg:  0 16px 48px rgba(13,94,120,0.18);
+  --radius:     12px;
+  --radius-sm:  8px;
+  --radius-lg:  16px;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+h1,h2,h3 { font-family: 'Poppins', sans-serif; }
+
+/* ─── TOPBAR ─── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--navy);
+  padding: 0 32px;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 2px 20px rgba(11,30,51,0.4);
+}
+.topbar-brand {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+.topbar-brand span { color: var(--gold-2); }
+.topbar-right { display: flex; align-items: center; gap: 20px; }
+.topbar-secure {
+  font-size: 12px; font-weight: 600;
+  color: var(--green-2);
+}
+
+/* ─── PROGRESS ─── */
+.progress-wrap {
+  position: fixed; top: 60px; left: 0; right: 0; z-index: 99;
+  background: var(--navy-2);
+  padding: 0 32px;
+  height: 52px;
+  display: flex; align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.progress-steps { display: flex; align-items: center; gap: 0; flex: 1; max-width: 400px; margin: 0 auto; }
+.prog-step { display: flex; align-items: center; gap: 0; cursor: pointer; flex: 1; }
+.prog-dot-wrap { display: flex; align-items: center; gap: 0; flex: 1; }
+.prog-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  transition: all 0.3s ease;
+  flex-shrink: 0; position: relative; z-index: 2;
+  background: var(--navy-2);
+}
+.prog-dot.active {
+  border-color: var(--white); color: var(--white);
+  background: var(--primary-dark);
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+}
+.prog-dot.done { border-color: var(--accent); background: var(--primary-dark); color: white; }
+.prog-line {
+  flex: 1; height: 2px;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.4s ease;
+  margin: 0 -1px; position: relative; z-index: 1;
+}
+.prog-line.done { background: var(--accent); }
+
+/* ─── MAIN ─── */
+.main {
+  padding-top: 112px;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+}
+.step-screen {
+  display: none; width: 100%; max-width: 820px;
+  padding: 48px 24px 80px;
+  animation: stepIn 0.4s ease forwards;
+}
+.step-screen.active { display: block; }
+@keyframes stepIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── HEADER ─── */
+.step-eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--primary); margin-bottom: 10px;
+}
+.step-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 38px; font-weight: 700;
+  color: var(--navy); line-height: 1.15; margin-bottom: 10px;
+}
+.step-desc {
+  font-size: 16px; font-weight: 400;
+  color: var(--text-mid); line-height: 1.65;
+  max-width: 640px; margin-bottom: 28px;
+}
+
+/* ─── FORMS ─── */
+.form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; }
+.form-row.single { grid-template-columns: 1fr; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 12px; font-weight: 700; color: var(--text-mid); letter-spacing: 0.5px; }
+.required-star { color: var(--red); font-weight: 700; }
+.form-input {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 500;
+  color: var(--navy); transition: border-color 0.2s; outline: none;
+  width: 100%;
+}
+.form-input:focus { border-color: var(--primary); }
+.form-input::placeholder { color: var(--text-light); font-weight: 400; }
+.field-error {
+  color: var(--red); font-size: 12px; margin-top: 4px; display: none;
+}
+.form-input.error { border-color: var(--red); }
+
+select.form-input {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231F9AC5' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.multi-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--navy); margin-bottom: 8px; margin-top: 28px;
+}
+
+/* ─── BUTTONS ─── */
+.step-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border);
+}
+.btn-back {
+  background: transparent; border: 2px solid var(--border);
+  padding: 12px 24px; border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+  color: var(--text-mid); cursor: pointer; transition: all 0.2s;
+}
+.btn-back:hover { border-color: var(--text-mid); color: var(--navy); }
+.btn-next {
+  background: var(--navy-2); border: none;
+  padding: 16px 32px; border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+  color: white; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-next:hover { background: var(--navy-3); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-next-arrow { font-size: 16px; transition: transform 0.2s; }
+.btn-next:hover .btn-next-arrow { transform: translateX(4px); }
+
+/* ─── PROPERTY SELECTION TILES (multi-select) ─── */
+.prop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+@media (max-width: 720px) { .prop-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 440px) { .prop-grid { grid-template-columns: 1fr 1fr; } }
+.prop-tile {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 10px;
+  cursor: pointer; transition: all 0.18s;
+  text-align: center;
+  position: relative;
+  user-select: none;
+}
+.prop-tile:hover { border-color: var(--primary); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+.prop-tile.selected {
+  border-color: var(--primary);
+  background: rgba(31,154,197,0.08);
+  box-shadow: 0 0 0 3px rgba(31,154,197,0.12);
+}
+.prop-tile.selected::after {
+  content: '✓'; position: absolute; top: 6px; right: 8px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.prop-tile-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+.prop-tile-name { font-weight: 700; font-size: 12.5px; color: var(--navy); line-height: 1.25; }
+
+/* ─── LOCATION CONFIG CARDS (one per selected property type) ─── */
+.loc-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.loc-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap; gap: 10px;
+}
+.loc-card-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 17px; font-weight: 700; color: var(--navy);
+  display: flex; align-items: center; gap: 8px;
+}
+.loc-card-title .icon { font-size: 22px; }
+
+/* Quantity stepper */
+.qty-stepper {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-lighter);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 6px;
+}
+.qty-stepper .qty-btn {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: none; background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: var(--primary);
+  cursor: pointer; transition: all 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.qty-stepper .qty-btn:hover:not(.disabled) { background: var(--primary); color: white; }
+.qty-stepper .qty-btn.disabled { opacity: 0.35; cursor: not-allowed; }
+.qty-stepper .qty-val {
+  font-family: 'Poppins', sans-serif;
+  min-width: 22px; text-align: center;
+  font-size: 15px; font-weight: 700; color: var(--navy);
+}
+.qty-stepper .qty-label {
+  font-size: 11px; font-weight: 600; color: var(--text-mid);
+  margin-left: 4px; padding-right: 8px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* Mode toggle (Default vs Custom) */
+.mode-toggle {
+  display: flex;
+  background: var(--bg-lighter);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  margin-bottom: 14px;
+  width: fit-content;
+}
+.mode-toggle-btn {
+  border: none; background: transparent;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--text-mid); cursor: pointer; transition: all 0.18s;
+  letter-spacing: 0.3px;
+}
+.mode-toggle-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Default mode panel (read-only summary) */
+.default-panel {
+  background: var(--bg-light);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  font-size: 13px;
+}
+@media (max-width: 520px) { .default-panel { grid-template-columns: 1fr; } }
+.default-panel-col { display: flex; flex-direction: column; gap: 3px; }
+.default-panel-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-mid);
+}
+.default-panel-value {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px; font-weight: 700; color: var(--navy);
+}
+.default-panel-sub { font-size: 11px; color: var(--text-mid); }
+
+/* Custom mode (editable fields) */
+.custom-panel { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+@media (max-width: 520px) { .custom-panel { grid-template-columns: 1fr; } }
+.custom-panel .form-input { padding: 10px 14px; font-size: 13.5px; }
+.custom-field-label {
+  font-size: 11px; color: var(--text-mid); margin-bottom: 4px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+}
+
+/* Info box */
+.info-box {
+  background: var(--bg-light);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px; margin-bottom: 16px;
+  font-size: 13px; color: var(--text-mid); line-height: 1.5;
+}
+
+/* ─── DENSITY (MARKET) CARDS ─── */
+.card-grid { display: grid; gap: 12px; margin-bottom: 28px; }
+.card-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.opt-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  cursor: pointer; transition: all 0.2s;
+  text-align: center;
+  position: relative;
+}
+.opt-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.opt-card.selected {
+  border-color: var(--primary);
+  background: rgba(31,154,197,0.06);
+  box-shadow: 0 0 0 3px rgba(31,154,197,0.12);
+}
+.opt-card.selected::after {
+  content: '✓'; position: absolute; top: 8px; right: 10px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.opt-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+.opt-title { font-weight: 700; font-size: 14px; color: var(--navy); }
+
+/* ─── PAYWALL (inline, blurs content below) ─── */
+.paywall-gate {
+  background: linear-gradient(135deg, var(--navy-2), var(--primary-dark));
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 28px 28px 24px;
+  margin: 32px 0 20px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  display: none;
+}
+.paywall-gate.visible { display: block; animation: paywallIn 0.5s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes paywallIn {
+  0% { opacity: 0; transform: translateY(20px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.paywall-eyebrow {
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold-2); margin-bottom: 10px;
+}
+.paywall-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px; font-weight: 700;
+  margin-bottom: 6px; line-height: 1.25;
+}
+.paywall-sub {
+  font-size: 14px; opacity: 0.88;
+  margin-bottom: 20px; max-width: 460px;
+  margin-left: auto; margin-right: auto;
+}
+.paywall-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  max-width: 540px; margin: 0 auto;
+}
+@media (max-width: 520px) {
+  .paywall-form { grid-template-columns: 1fr; }
+}
+.paywall-form input {
+  padding: 14px 16px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+  min-width: 0;
+}
+.paywall-form input::placeholder { color: rgba(255,255,255,0.6); }
+.paywall-form input:focus {
+  background: rgba(255,255,255,0.18);
+  border-color: var(--gold-2);
+}
+.paywall-form input.error { border-color: var(--red); background: rgba(217,79,61,0.18); }
+.paywall-form button {
+  background: var(--gold-2);
+  color: var(--navy);
+  border: none;
+  padding: 14px 22px;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.paywall-form button:hover { background: white; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+.paywall-privacy {
+  font-size: 11px; color: rgba(255,255,255,0.65);
+  margin-top: 14px;
+}
+
+/* Content that hides/blurs behind the paywall */
+.paywall-locked {
+  position: relative;
+  pointer-events: none;
+  user-select: none;
+}
+.paywall-locked::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(248,252,254,0.55);
+  z-index: 10;
+  border-radius: var(--radius);
+  pointer-events: none;
+}
+.paywall-locked > * { opacity: 0.55; filter: saturate(0.6); }
+
+/* ─── PROJECTION (page 2) ─── */
+.projection-hero {
+  background: var(--navy);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 28px;
+  color: white;
+  text-align: center;
+}
+.proj-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-2); margin-bottom: 8px; }
+.proj-name { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.proj-summary-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+.proj-summary-tag { background: rgba(255,255,255,0.1); border-radius: 6px; padding: 6px 14px; font-size: 13px; color: rgba(255,255,255,0.9); }
+.proj-summary-tag strong { color: white; }
+
+.proj-big {
+  background: var(--white);
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 20px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  text-align: center;
+}
+.proj-big-col { padding: 8px 0; }
+.proj-big-col + .proj-big-col { border-left: 1px solid var(--border); }
+.proj-big-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-mid); margin-bottom: 8px; }
+.proj-big-num { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 900; color: var(--green); }
+.proj-big-sub { font-size: 12px; color: var(--text-mid); margin-top: 4px; }
+@media (max-width: 600px) {
+  .proj-big { grid-template-columns: 1fr; gap: 16px; }
+  .proj-big-col + .proj-big-col { border-left: none; border-top: 1px solid var(--border); padding-top: 16px; }
+}
+
+.proj-table {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 0;
+  margin-bottom: 24px;
+}
+.proj-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-2);
+  font-size: 14px;
+}
+.proj-row:last-child { border-bottom: none; }
+.proj-row-label { color: var(--text-mid); }
+.proj-row-value { font-weight: 700; color: var(--navy); }
+.proj-row-value.neg { color: var(--red); }
+.proj-row-value.pos { color: var(--green); }
+.proj-row.total {
+  background: rgba(31,154,197,.05);
+  font-size: 16px;
+  border-top: 2px solid var(--primary);
+  border-bottom: none;
+}
+.proj-row.total .proj-row-label { font-weight: 700; color: var(--navy); }
+.proj-row.total .proj-row-value { font-size: 18px; }
+
+.cost-waiting-box {
+  background: linear-gradient(135deg, rgba(217,79,61,.08), rgba(217,79,61,.15));
+  border: 2px solid var(--red);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 28px;
+}
+.cw-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--red); margin-bottom: 8px; }
+.cw-headline { font-size: 16px; color: var(--text); line-height: 1.5; }
+.cw-num { font-family: 'Poppins', sans-serif; font-size: 42px; font-weight: 900; color: var(--red); margin: 8px 0; }
+.cw-sub { font-size: 13px; color: var(--text-mid); }
+
+.cta-section {
+  background: var(--bg-light);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.cta-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--navy); margin-bottom: 8px;
+  text-align: center;
+}
+.cta-sub {
+  font-size: 14px; color: var(--text-mid);
+  text-align: center; margin-bottom: 20px;
+}
+
+/* ─── CONTACT CAPTURE (optional, below cost of waiting) ─── */
+.contact-capture {
+  background: linear-gradient(135deg, var(--bg-light), var(--bg-mint));
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-lg);
+  padding: 28px 28px 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+}
+.cc-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px; font-weight: 700;
+  color: var(--navy); margin-bottom: 6px;
+  text-align: center;
+  line-height: 1.2;
+}
+.cc-sub {
+  font-size: 14px; color: var(--text-mid);
+  text-align: center; margin-bottom: 20px;
+  max-width: 520px; margin-left: auto; margin-right: auto;
+}
+.cc-optional-badge {
+  display: inline-block;
+  background: var(--white);
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.cc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+@media (max-width: 520px) { .cc-grid { grid-template-columns: 1fr; } }
+.cc-field-full { grid-column: 1 / -1; }
+.cc-field-label {
+  font-size: 11px; font-weight: 700; color: var(--text-mid);
+  letter-spacing: 0.5px; margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.cc-save-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; margin-top: 18px;
+  flex-wrap: wrap;
+}
+.cc-save-btn {
+  background: var(--navy-2); color: white; border: none;
+  padding: 12px 28px; border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.cc-save-btn:hover { background: var(--navy-3); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.cc-save-status {
+  font-size: 13px; font-weight: 600;
+  color: var(--green); opacity: 0; transition: opacity 0.3s;
+}
+.cc-save-status.visible { opacity: 1; }
+.cc-save-status.saving { color: var(--text-mid); }
+
+.rep-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-top: 16px;
+  text-align: center;
+}
+.rep-eyebrow {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-mid); letter-spacing: 0.5px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.rep-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: var(--navy); margin-bottom: 4px;
+}
+.rep-email a {
+  font-size: 14px; color: var(--primary);
+  text-decoration: none; font-weight: 600;
+}
+.rep-email a:hover { text-decoration: underline; }
+
+.disclaimer {
+  font-size: 12px; color: var(--text-mid); opacity: 0.75;
+  line-height: 1.5; padding: 12px 16px;
+  background: var(--bg-lighter);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-2);
+}
+
+/* Goal cards */
+.goal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+@media (max-width: 520px) { .goal-grid { grid-template-columns: 1fr; } }
+.goal-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; gap: 12px;
+  position: relative;
+  user-select: none;
+}
+.goal-card:hover { border-color: var(--primary); }
+.goal-card.selected {
+  border-color: var(--primary);
+  background: rgba(31,154,197,0.06);
+  box-shadow: 0 0 0 3px rgba(31,154,197,0.12);
+}
+.goal-rank {
+  position: absolute; top: -8px; left: -8px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary); color: white;
+  display: none; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+  border: 2px solid white;
+}
+.goal-card.selected .goal-rank { display: flex; }
+.goal-icon { font-size: 22px; flex-shrink: 0; }
+.goal-text { font-weight: 700; font-size: 14px; color: var(--navy); }
+
+@media (max-width: 600px) {
+  .step-title { font-size: 28px; }
+  .form-row { grid-template-columns: 1fr; }
+  .card-grid.cols-4 { grid-template-columns: 1fr 1fr; }
+  .step-screen { padding: 32px 16px 60px; }
+  .paywall-title { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">Vending<span>Preneur</span></div>
+  <div class="topbar-right">
+    <div class="topbar-secure">🔒 SECURE</div>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-wrap">
+  <div class="progress-steps" id="progressSteps"></div>
+</div>
+
+<div class="main">
+
+  <!-- ══ STEP 1: LOCATIONS + GOALS (with inline paywall) ══ -->
+  <div class="step-screen active" id="step-1">
+    <div class="step-eyebrow">Step 1 of 2</div>
+    <h1 class="step-title">Let's see what your route could earn.</h1>
+    <p class="step-desc">Just pick the spots near you that could hold a vending machine. We'll pull real numbers from 500+ VendingPreneur routes and build your projection in 60 seconds.</p>
+
+    <!-- LOCATIONS (multi-select tiles) -->
+    <div class="multi-label" style="margin-top:8px;">Do you have any spots near you that could hold a vending machine?</div>
+    <p class="step-desc" style="margin-top:-4px;margin-bottom:14px;font-size:14px;">Pick as many as apply. Think apartments you live in, gyms you go to, offices nearby — anywhere people gather.</p>
+
+    <div class="prop-grid" id="propertyGrid"></div>
+    <span class="field-error" id="propError" style="margin-top:-12px;margin-bottom:16px;">Pick at least one spot to continue.</span>
+
+    <!-- LOCATION CONFIG CARDS (appear as user picks tiles) -->
+    <div id="locationCards"></div>
+
+    <!-- ═══════════════════════════════════════════════════
+         EVERYTHING BELOW THIS POINT IS GATED BY THE PAYWALL
+         ═══════════════════════════════════════════════════ -->
+
+    <!-- PAYWALL GATE -->
+    <div class="paywall-gate" id="paywallGate">
+      <div class="paywall-eyebrow">👀 You're almost there</div>
+      <div class="paywall-title">Who should we build this projection for?</div>
+      <div class="paywall-sub">Drop your first name and email and we'll unlock the rest of your custom projection.</div>
+      <div class="paywall-form">
+        <input type="text" id="paywallName" placeholder="First name" onkeydown="if(event.key==='Enter'){submitPaywall();}" oninput="clearPaywallError()">
+        <input type="email" id="paywallEmail" placeholder="Email address" onkeydown="if(event.key==='Enter'){submitPaywall();}" oninput="clearPaywallError()">
+        <button onclick="submitPaywall()">Unlock →</button>
+      </div>
+      <div class="paywall-privacy">🔒 We won't spam you with marketing emails. Your info stays private.</div>
+    </div>
+
+    <!-- GATED CONTENT -->
+    <div id="gatedContent" class="paywall-locked">
+
+      <!-- MARKET DENSITY -->
+      <div class="multi-label">What kind of market are you in?</div>
+      <p class="step-desc" style="margin-top:-4px;margin-bottom:14px;font-size:14px;">This tunes your numbers to your area.</p>
+      <div class="card-grid cols-4">
+        <div class="opt-card" data-val="major-city" onclick="selectDensity(this)">
+          <span class="opt-icon">🌆</span>
+          <div class="opt-title">Major City</div>
+        </div>
+        <div class="opt-card" data-val="city" onclick="selectDensity(this)">
+          <span class="opt-icon">🏙️</span>
+          <div class="opt-title">City (&lt;1M Pop)</div>
+        </div>
+        <div class="opt-card" data-val="suburban" onclick="selectDensity(this)">
+          <span class="opt-icon">🏘️</span>
+          <div class="opt-title">Suburban</div>
+        </div>
+        <div class="opt-card" data-val="rural" onclick="selectDensity(this)">
+          <span class="opt-icon">🌾</span>
+          <div class="opt-title">Rural</div>
+        </div>
+      </div>
+      <span class="field-error" id="densityError" style="margin-top:-12px;margin-bottom:12px;">Please select your market type.</span>
+
+      <!-- GOALS & AMBITIONS -->
+      <div class="multi-label">What's driving you to do this?</div>
+      <p class="step-desc" style="margin-top:-4px;margin-bottom:14px;font-size:14px;">Tap your top 2 — click #1 first, then your #2. We'll use these to frame your projection.</p>
+
+      <div class="goal-grid" id="goalGrid">
+        <div class="goal-card" data-goal="supplemental" onclick="selectGoal(this)">
+          <div class="goal-rank" id="gr-supplemental"></div>
+          <span class="goal-icon">💰</span>
+          <div class="goal-text">Supplemental Income</div>
+        </div>
+        <div class="goal-card" data-goal="replace" onclick="selectGoal(this)">
+          <div class="goal-rank" id="gr-replace"></div>
+          <span class="goal-icon">🚀</span>
+          <div class="goal-text">Replace My Day Job</div>
+        </div>
+        <div class="goal-card" data-goal="family" onclick="selectGoal(this)">
+          <div class="goal-rank" id="gr-family"></div>
+          <span class="goal-icon">👨‍👩‍👧‍👦</span>
+          <div class="goal-text">Family Business</div>
+        </div>
+        <div class="goal-card" data-goal="scale" onclick="selectGoal(this)">
+          <div class="goal-rank" id="gr-scale"></div>
+          <span class="goal-icon">📈</span>
+          <div class="goal-text">Scale &amp; Sell</div>
+        </div>
+      </div>
+      <span class="field-error" id="goalError" style="margin-top:4px;margin-bottom:12px;">Please pick at least one goal.</span>
+
+      <!-- DESIRED MONTHLY PROFIT -->
+      <div class="multi-label">What would you love to take home each month?</div>
+      <p class="step-desc" style="margin-top:-4px;margin-bottom:12px;font-size:14px;">Ballpark is fine. This shapes how we recommend scaling your route.</p>
+      <div class="form-row single">
+        <div class="form-field">
+          <div style="position:relative;">
+            <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:700;color:var(--primary);z-index:1;">$</span>
+            <input class="form-input" type="text" placeholder="2,500" id="fnDesiredProfit" style="padding-left:32px;font-size:18px;font-weight:600;" oninput="formatProfit(this)">
+          </div>
+          <span style="font-size:12px;color:var(--text-mid);margin-top:4px;display:block;">per month</span>
+        </div>
+      </div>
+
+    </div><!-- /#gatedContent -->
+
+    <div class="step-nav">
+      <div></div>
+      <button class="btn-next" onclick="nextStep()">See My Projection <span class="btn-next-arrow">→</span></button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 2: PROJECTION ══ -->
+  <div class="step-screen" id="step-2">
+    <div class="step-eyebrow">Step 2 of 2 — Your Projection</div>
+    <h1 class="step-title">Here's what your route could earn.</h1>
+    <p class="step-desc">Based on your selections, here's your custom profit projection using real VendingPreneur member data.</p>
+
+    <div class="projection-hero">
+      <div class="proj-eyebrow">Your Custom Route</div>
+      <div class="proj-name" id="projName">—</div>
+      <div class="proj-summary-row" id="projTags"></div>
+    </div>
+
+    <div class="proj-big">
+      <div class="proj-big-col">
+        <div class="proj-big-label">Monthly Take-Home Profit</div>
+        <div class="proj-big-num" id="monthlyProfit">—</div>
+        <div class="proj-big-sub">per month</div>
+      </div>
+      <div class="proj-big-col">
+        <div class="proj-big-label">Yearly Take-Home Profit</div>
+        <div class="proj-big-num" id="yearlyProfit">—</div>
+        <div class="proj-big-sub">per year</div>
+      </div>
+    </div>
+
+    <div class="multi-label" style="margin-top:8px;">Annual Breakdown</div>
+    <div class="proj-table" id="projTable"></div>
+
+    <div class="cost-waiting-box">
+      <div class="cw-eyebrow">⏰ Cost of Waiting</div>
+      <div class="cw-headline">Each month you wait is costing you up to</div>
+      <div class="cw-num" id="costOfWaitingNum">—</div>
+      <div class="cw-sub">in potential monthly take-home profit</div>
+    </div>
+
+    <!-- ══ CONTACT CAPTURE — all optional ══ -->
+    <div class="contact-capture">
+      <div style="text-align:center;">
+        <div class="cc-optional-badge">All fields optional</div>
+      </div>
+      <div class="cc-title">💸 So you don't miss any more profits</div>
+      <div class="cc-sub">Drop your info and we'll send your projection, spot locations near you, and share tips that grow your route faster.</div>
+
+      <div class="cc-grid">
+        <div>
+          <div class="cc-field-label">Email</div>
+          <input class="form-input" type="email" id="ccEmail" placeholder="you@example.com" oninput="onContactChange()" onblur="saveContactIfChanged()">
+        </div>
+        <div>
+          <div class="cc-field-label">Phone</div>
+          <input class="form-input" type="tel" id="ccPhone" placeholder="(555) 123-4567" oninput="formatPhone(this); onContactChange()" onblur="saveContactIfChanged()">
+        </div>
+        <div>
+          <div class="cc-field-label">City / Location</div>
+          <input class="form-input" type="text" id="ccCity" placeholder="Eugene, OR" oninput="onContactChange()" onblur="saveContactIfChanged()">
+        </div>
+        <div>
+          <div class="cc-field-label">Why Vending?</div>
+          <select class="form-input" id="ccReason" onchange="onContactChange(); saveContactIfChanged();">
+            <option value="">Pick one…</option>
+            <option value="extra-income">💰 Extra income on the side</option>
+            <option value="quit-job">🚀 Eventually replace my day job</option>
+            <option value="family-legacy">👨‍👩‍👧‍👦 Build something for my family</option>
+            <option value="build-sell">📈 Build it up and sell it</option>
+            <option value="passive-income">🌴 Passive income / freedom</option>
+            <option value="curious">🤔 Just exploring the idea</option>
+            <option value="other">💬 Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cc-save-row">
+        <button class="cc-save-btn" onclick="saveContactNow()">Send Me My Info →</button>
+        <span class="cc-save-status" id="ccSaveStatus"></span>
+      </div>
+    </div>
+
+    <div class="cta-section">
+      <div class="cta-title">📅 Book Your Discovery Call</div>
+      <div class="cta-sub">Pick a time that works for you. We'll walk through your numbers in detail.</div>
+      <div class="calendly-inline-widget"
+           data-url=""
+           id="calendlyEmbed"
+           style="min-width:320px;height:700px;margin-top:16px;border-radius:var(--radius);overflow:hidden;"></div>
+      <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+
+      <div class="rep-card">
+        <div class="rep-eyebrow">Questions? Reach out directly:</div>
+        <div class="rep-name" id="repNameDisplay">—</div>
+        <div class="rep-email">
+          <a id="repEmailLink" href="#">—</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> These projections are estimates based on VendingPreneur member data across 500+ locations. Actual results depend on location quality, product mix, machine type, and operator effort.
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-back" onclick="prevStep()">← Back</button>
+      <div></div>
+    </div>
+  </div>
+
+</div><!-- end .main -->
+
+<script>
+// ══════════════════════════════════
+//  CONFIG — EDIT PER SALES REP
+// ══════════════════════════════════
+const SHEET_WEBHOOK_URL = 'REPLACE_WITH_YOUR_WEBHOOK_URL';
+
+const SALES_REP = {
+  name: 'Jason Aaron',
+  email: 'jasonaaron@modern-amenities.com',
+  calendly: 'https://calendly.com/jasonaaron-modern-amenities/30min',
+};
+
+// Paywall trigger: seconds of scrolling before we gate the rest of the form.
+const PAYWALL_DELAY_SECONDS = 15;
+
+// ══════════════════════════════════
+//  SESSION ID
+// ══════════════════════════════════
+function getSessionId() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('sid')) {
+    try { sessionStorage.setItem('vp_session_id', params.get('sid')); } catch(e) {}
+    return params.get('sid');
+  }
+  try {
+    let sid = sessionStorage.getItem('vp_session_id');
+    if (!sid) {
+      sid = 'vp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+      sessionStorage.setItem('vp_session_id', sid);
+    }
+    return sid;
+  } catch(e) {
+    return 'vp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+  }
+}
+
+// ══════════════════════════════════
+//  STATE
+// ══════════════════════════════════
+const state = {
+  session_id: getSessionId(),
+  step: 1,
+  maxVisited: 1,
+  name: '',
+  paywallUnlocked: false,
+  selectedProps: [],           // e.g. ['mid-rise-apartment', 'gym']
+  locConfigs: {},              // { propVal: { mode:'default'|'custom', count, units, machine } }
+  density: null,
+  goalRank: [],                // ordered array of goal keys (max 2)
+  desiredProfit: null,
+  projection: null,
+  // Optional contact (captured on page 2, all optional)
+  email: '',
+  phone: '',
+  city: '',
+  reason: '',
+  _lastContactSnapshot: '',    // used to skip no-op saves
+};
+
+const TOTAL_STEPS = 2;
+const STEP_LABELS = ['Your Route', 'Projection'];
+const STEP_NAMES_MAP = { 1: 'Your Route', 2: 'Projection' };
+
+// ══════════════════════════════════
+//  PROPERTY / MACHINE / DATA
+// ══════════════════════════════════
+const PROPERTY_DEFS = [
+  {val:'mid-rise-apartment',   icon:'🏢',   name:'Mid Rise Apartment'},
+  {val:'high-rise-apartment',  icon:'🏙️',   name:'High Rise Apartment'},
+  {val:'garden-style-apartment', icon:'🏘️', name:'Garden Style Apts'},
+  {val:'tower-apartment',      icon:'🏗️',   name:'Tower Apartment'},
+  {val:'office',               icon:'💼',   name:'Office'},
+  {val:'gym',                  icon:'💪',   name:'Gym'},
+  {val:'manufacturing',        icon:'🏭',   name:'Manufacturing'},
+  {val:'warehouse',            icon:'📦',   name:'Warehouse'},
+  {val:'school',               icon:'🎓',   name:'School'},
+  {val:'hospital',             icon:'🏥',   name:'Hospital'},
+  {val:'medical-outpatient',   icon:'🩺',   name:'Medical / Outpatient'},
+  {val:'veterinary',           icon:'🐾',   name:'Veterinary Hospital'},
+  {val:'hotel',                icon:'🏨',   name:'Hotel'},
+  {val:'rec-center',           icon:'🏀',   name:'Rec Center'},
+  {val:'municipal-gov',        icon:'🏛️',   name:'Municipal / Gov'},
+  {val:'shelter',              icon:'🏠',   name:'Shelter'},
+  {val:'other-business',       icon:'🏪',   name:'Other Business'},
+];
+
+const PROP_NAME_MAP = {
+  'high-rise-apartment':'High Rise Apartment','mid-rise-apartment':'Mid Rise Apartment',
+  'garden-style-apartment':'Garden Style Apartment','tower-apartment':'Tower Style Apartment (1 building)',
+  'office':'Office','warehouse':'Warehouse','manufacturing':'Manufacturing',
+  'gym':'Gym','rec-center':'Rec Center','hospital':'Hospital',
+  'medical-outpatient':'Medical Outpatient Facility','veterinary':'Veterinary Hospital',
+  'hotel':'Hotel','school':'School','municipal-gov':'Municipal/Government Building',
+  'shelter':'Shelter','other-business':'Other Business',
+};
+
+// Unit label (what the denominator represents) per property type.
+const UNIT_TYPE_MAP = {
+  'high-rise-apartment': 'units','mid-rise-apartment': 'units',
+  'garden-style-apartment': 'units','tower-apartment': 'units',
+  'office': 'employees','warehouse': 'employees','manufacturing': 'employees',
+  'school': 'employees','municipal-gov': 'employees',
+  'gym': 'daily visitors','rec-center': 'daily visitors','hospital': 'daily visitors',
+  'medical-outpatient': 'daily visitors','veterinary': 'daily visitors',
+  'hotel': 'daily visitors','shelter': 'daily visitors','other-business': 'daily visitors',
+};
+
+// Weighted-avg denominators computed from Shared Denominators tab
+// (weighted by N locations, grouped by Property Type only).
+const DEFAULT_DENOM = {
+  'garden-style-apartment': 354,
+  'gym': 170,
+  'high-rise-apartment': 318,
+  'hospital': 100,
+  'hotel': 78,
+  'manufacturing': 136,
+  'medical-outpatient': 73,
+  'mid-rise-apartment': 246,
+  'municipal-gov': 294,
+  'office': 114,
+  'other-business': 120,
+  'rec-center': 300,
+  'school': 126,
+  'shelter': 650,
+  'tower-apartment': 274,
+  'veterinary': 97,
+  'warehouse': 74,
+};
+
+const MACHINE_DEFS = [
+  {val:'snacks-drinks-ai', icon:'🥤', name:'Snacks + Drinks (AI powered)', cost:7000},
+  {val:'drink-machine', icon:'🧃', name:'Drink Machine', cost:4000},
+  {val:'bulk-snacks-frozen', icon:'🍫', name:'Bulk Snacks + Frozen Meals', cost:4000},
+  {val:'freezer', icon:'🧊', name:'Freezer', cost:4700},
+  {val:'micromarket', icon:'🏪', name:'Micromarket', cost:8300},
+  {val:'other', icon:'📦', name:'Other', cost:6000},
+];
+
+const MACH_NAME_MAP = {
+  'snacks-drinks-ai':'Snacks + Drinks (AI)','drink-machine':'Drink Machine',
+  'bulk-snacks-frozen':'Bulk Snacks + Frozen Meals','freezer':'Freezer',
+  'micromarket':'Micromarket','other':'Other',
+};
+
+// The most common / "default" machine recommendation per property type.
+// Drives the "Default config" revenue lookup so we can compute without asking.
+const DEFAULT_MACHINE_BY_PROP = {
+  'high-rise-apartment':   'snacks-drinks-ai',
+  'mid-rise-apartment':    'snacks-drinks-ai',
+  'garden-style-apartment':'snacks-drinks-ai',
+  'tower-apartment':       'snacks-drinks-ai',
+  'office':                'snacks-drinks-ai',
+  'warehouse':             'drink-machine',
+  'manufacturing':         'snacks-drinks-ai',
+  'gym':                   'drink-machine',
+  'rec-center':            'drink-machine',
+  'hospital':              'drink-machine',
+  'medical-outpatient':    'drink-machine',
+  'veterinary':            'drink-machine',
+  'hotel':                 'drink-machine',
+  'school':                'snacks-drinks-ai',
+  'municipal-gov':         'drink-machine',
+  'shelter':               'snacks-drinks-ai',
+  'other-business':        'snacks-drinks-ai',
+};
+
+const DENSITY_NAME_MAP = {
+  'major-city':'Major City','city':'City (<1M Population)','suburban':'Suburban','rural':'Rural',
+};
+
+// Blended $/Machine/Unit from Route Group Analysis v5 (full matrix).
+const ROUTE_BLENDED_DPM = {
+  'Garden Style Apartment|City (<1M Population)|Drink Machine':2.25,'Garden Style Apartment|City (<1M Population)|Freezer':2.13,'Garden Style Apartment|City (<1M Population)|Micromarket':2.79,'Garden Style Apartment|City (<1M Population)|Other':3.62,'Garden Style Apartment|City (<1M Population)|Snacks + Drinks (AI)':2.99,
+  'Garden Style Apartment|Major City|Drink Machine':2.95,'Garden Style Apartment|Major City|Micromarket':4.62,'Garden Style Apartment|Major City|Other':9.14,'Garden Style Apartment|Major City|Snacks + Drinks (AI)':3.88,
+  'Garden Style Apartment|Suburban|Drink Machine':1.49,'Garden Style Apartment|Suburban|Micromarket':2.17,'Garden Style Apartment|Suburban|Snacks + Drinks (AI)':1.55,
+  'Gym|City (<1M Population)|Drink Machine':5.09,'Gym|City (<1M Population)|Freezer':10.34,'Gym|City (<1M Population)|Other':4.03,'Gym|City (<1M Population)|Snacks + Drinks (AI)':3.65,
+  'Gym|Major City|Drink Machine':5.72,'Gym|Major City|Other':4.10,'Gym|Major City|Snacks + Drinks (AI)':5.01,
+  'Gym|Rural|Drink Machine':6.38,'Gym|Suburban|Drink Machine':4.34,'Gym|Suburban|Other':8.29,'Gym|Suburban|Snacks + Drinks (AI)':3.74,
+  'High Rise Apartment|City (<1M Population)|Drink Machine':6.69,'High Rise Apartment|City (<1M Population)|Snacks + Drinks (AI)':7.12,
+  'High Rise Apartment|Major City|Drink Machine':4.21,'High Rise Apartment|Major City|Other':4.80,'High Rise Apartment|Major City|Snacks + Drinks (AI)':5.53,
+  'High Rise Apartment|Rural|Drink Machine':5.84,'High Rise Apartment|Suburban|Drink Machine':4.29,'High Rise Apartment|Suburban|Snacks + Drinks (AI)':4.35,
+  'Hospital|City (<1M Population)|Drink Machine':3.47,'Hospital|City (<1M Population)|Other':5.17,
+  'Hotel|Major City|Snacks + Drinks (AI)':9.00,'Hotel|Rural|Drink Machine':4.81,'Hotel|Rural|Other':11.48,
+  'Manufacturing|City (<1M Population)|Drink Machine':5.74,'Manufacturing|City (<1M Population)|Micromarket':9.57,'Manufacturing|City (<1M Population)|Other':8.04,'Manufacturing|City (<1M Population)|Snacks + Drinks (AI)':6.61,
+  'Manufacturing|Major City|Drink Machine':7.90,'Manufacturing|Major City|Other':7.03,'Manufacturing|Major City|Snacks + Drinks (AI)':8.94,
+  'Manufacturing|Rural|Other':9.59,'Manufacturing|Suburban|Drink Machine':16.72,'Manufacturing|Suburban|Other':19.20,
+  'Medical Outpatient Facility|City (<1M Population)|Drink Machine':3.82,
+  'Mid Rise Apartment|City (<1M Population)|Bulk Snacks + Frozen Meals':8.25,'Mid Rise Apartment|City (<1M Population)|Drink Machine':7.17,'Mid Rise Apartment|City (<1M Population)|Micromarket':10.24,'Mid Rise Apartment|City (<1M Population)|Other':6.50,'Mid Rise Apartment|City (<1M Population)|Snacks + Drinks (AI)':8.74,
+  'Mid Rise Apartment|Major City|Bulk Snacks + Frozen Meals':7.33,'Mid Rise Apartment|Major City|Drink Machine':7.54,'Mid Rise Apartment|Major City|Other':10.29,'Mid Rise Apartment|Major City|Snacks + Drinks (AI)':7.13,
+  'Mid Rise Apartment|Rural|Freezer':4.72,'Mid Rise Apartment|Rural|Snacks + Drinks (AI)':6.73,
+  'Mid Rise Apartment|Suburban|Drink Machine':5.55,'Mid Rise Apartment|Suburban|Other':6.68,'Mid Rise Apartment|Suburban|Snacks + Drinks (AI)':5.41,
+  'Municipal/Government Building|City (<1M Population)|Drink Machine':6.62,'Municipal/Government Building|Major City|Drink Machine':2.74,
+  'Municipal/Government Building|Rural|Drink Machine':3.25,'Municipal/Government Building|Rural|Snacks + Drinks (AI)':7.58,
+  'Municipal/Government Building|Suburban|Drink Machine':1.63,'Municipal/Government Building|Suburban|Snacks + Drinks (AI)':1.08,
+  'Office|City (<1M Population)|Drink Machine':5.23,'Office|City (<1M Population)|Micromarket':11.73,'Office|City (<1M Population)|Snacks + Drinks (AI)':5.54,
+  'Office|Major City|Drink Machine':8.69,'Office|Major City|Micromarket':12.95,'Office|Major City|Other':7.24,'Office|Major City|Snacks + Drinks (AI)':7.61,
+  'Office|Suburban|Drink Machine':5.67,'Office|Suburban|Snacks + Drinks (AI)':4.67,
+  'Other Business|City (<1M Population)|Bulk Snacks + Frozen Meals':12.64,'Other Business|City (<1M Population)|Drink Machine':12.07,'Other Business|City (<1M Population)|Micromarket':15.80,'Other Business|City (<1M Population)|Snacks + Drinks (AI)':12.50,
+  'Other Business|Major City|Drink Machine':7.23,'Other Business|Major City|Freezer':6.64,'Other Business|Major City|Micromarket':7.52,'Other Business|Major City|Other':7.59,'Other Business|Major City|Snacks + Drinks (AI)':4.77,
+  'Other Business|Suburban|Drink Machine':6.34,'Other Business|Suburban|Other':4.29,'Other Business|Suburban|Snacks + Drinks (AI)':4.39,
+  'Rec Center|City (<1M Population)|Drink Machine':7.28,
+  'School|City (<1M Population)|Bulk Snacks + Frozen Meals':9.90,'School|City (<1M Population)|Drink Machine':6.38,'School|City (<1M Population)|Other':8.42,'School|City (<1M Population)|Snacks + Drinks (AI)':6.64,
+  'Shelter|Major City|Snacks + Drinks (AI)':4.96,
+  'Tower Style Apartment (1 building)|City (<1M Population)|Drink Machine':5.76,'Tower Style Apartment (1 building)|City (<1M Population)|Freezer':14.59,'Tower Style Apartment (1 building)|City (<1M Population)|Other':8.57,'Tower Style Apartment (1 building)|City (<1M Population)|Snacks + Drinks (AI)':8.57,
+  'Tower Style Apartment (1 building)|Major City|Drink Machine':12.50,
+  'Veterinary Hospital|City (<1M Population)|Freezer':11.47,'Veterinary Hospital|Major City|Other':18.20,'Veterinary Hospital|Suburban|Drink Machine':7.00,
+  'Warehouse|City (<1M Population)|Drink Machine':15.10,'Warehouse|City (<1M Population)|Micromarket':9.83,'Warehouse|City (<1M Population)|Other':11.43,'Warehouse|City (<1M Population)|Snacks + Drinks (AI)':11.86,
+  'Warehouse|Major City|Drink Machine':34.27,'Warehouse|Major City|Snacks + Drinks (AI)':20.40,
+  'Warehouse|Rural|Drink Machine':34.73,'Warehouse|Suburban|Drink Machine':8.17,'Warehouse|Suburban|Micromarket':8.49,'Warehouse|Suburban|Snacks + Drinks (AI)':8.99,
+};
+
+const PROP_LOC_AVG_DPM = {
+  'Garden Style Apartment|City (<1M Population)':2.93,'Garden Style Apartment|Major City':4.20,'Garden Style Apartment|Suburban':1.61,
+  'Gym|City (<1M Population)':5.23,'Gym|Major City':4.98,'Gym|Rural':6.38,'Gym|Suburban':4.95,
+  'High Rise Apartment|City (<1M Population)':6.96,'High Rise Apartment|Major City':5.47,'High Rise Apartment|Rural':5.84,'High Rise Apartment|Suburban':4.34,
+  'Hospital|City (<1M Population)':4.32,'Hotel|Major City':9.00,'Hotel|Rural':8.15,
+  'Manufacturing|City (<1M Population)':7.07,'Manufacturing|Major City':7.76,'Manufacturing|Rural':9.59,'Manufacturing|Suburban':17.22,
+  'Medical Outpatient Facility|City (<1M Population)':3.82,
+  'Mid Rise Apartment|City (<1M Population)':8.13,'Mid Rise Apartment|Major City':7.36,'Mid Rise Apartment|Rural':6.06,'Mid Rise Apartment|Suburban':5.66,
+  'Municipal/Government Building|City (<1M Population)':6.62,'Municipal/Government Building|Major City':2.74,'Municipal/Government Building|Rural':6.13,'Municipal/Government Building|Suburban':1.35,
+  'Office|City (<1M Population)':6.48,'Office|Major City':8.51,'Office|Suburban':5.33,
+  'Other Business|City (<1M Population)':12.61,'Other Business|Major City':6.94,'Other Business|Suburban':5.63,
+  'Rec Center|City (<1M Population)':7.28,
+  'School|City (<1M Population)':6.96,
+  'Shelter|Major City':4.96,
+  'Tower Style Apartment (1 building)|City (<1M Population)':9.10,'Tower Style Apartment (1 building)|Major City':12.50,
+  'Veterinary Hospital|City (<1M Population)':11.47,'Veterinary Hospital|Major City':18.20,'Veterinary Hospital|Suburban':7.00,
+  'Warehouse|City (<1M Population)':13.40,'Warehouse|Major City':29.64,'Warehouse|Rural':34.73,'Warehouse|Suburban':8.56,
+};
+
+const FALLBACK_DPM = 6.0;
+
+function lookupBlendedDPM(propVal, machVal, densityVal) {
+  const propName = PROP_NAME_MAP[propVal] || '';
+  const machName = MACH_NAME_MAP[machVal] || '';
+  const locName = DENSITY_NAME_MAP[densityVal] || 'City (<1M Population)';
+  const key = propName + '|' + locName + '|' + machName;
+  if (ROUTE_BLENDED_DPM[key]) return ROUTE_BLENDED_DPM[key];
+  const plKey = propName + '|' + locName;
+  if (PROP_LOC_AVG_DPM[plKey]) return PROP_LOC_AVG_DPM[plKey];
+  for (const k in ROUTE_BLENDED_DPM) {
+    if (k.startsWith(propName + '|') && k.endsWith('|' + machName)) return ROUTE_BLENDED_DPM[k];
+  }
+  return FALLBACK_DPM;
+}
+
+const GOAL_LABELS = {
+  supplemental: 'Supplemental Income',
+  replace: 'Replace Day Job',
+  family: 'Family Business',
+  scale: 'Scale & Sell',
+};
+
+const REASON_LABELS = {
+  'extra-income': 'Extra income on the side',
+  'quit-job': 'Eventually replace day job',
+  'family-legacy': 'Build something for family',
+  'build-sell': 'Build it up and sell it',
+  'passive-income': 'Passive income / freedom',
+  'curious': 'Just exploring the idea',
+  'other': 'Other',
+};
+
+// ══════════════════════════════════
+//  INIT
+// ══════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  buildProgress();
+  buildPropertyGrid();
+  populateRepInfo();
+
+  // If a shareable URL was used, restore state BEFORE firing the sheet
+  // (so we don't blank out the session). Otherwise, start fresh.
+  const restored = restoreFromURL();
+  if (restored) {
+    setTimeout(restoreUIFromState, 60);
+    // If state was restored and name was already captured, skip the paywall;
+    // otherwise still arm it.
+    if (!state.paywallUnlocked) startPaywallTimer();
+  } else {
+    startPaywallTimer();
+    sendToSheet(1, 'started');
+  }
+});
+
+function populateRepInfo() {
+  const cal = document.getElementById('calendlyEmbed');
+  if (cal && SALES_REP.calendly) cal.setAttribute('data-url', SALES_REP.calendly);
+  const nameEl = document.getElementById('repNameDisplay');
+  const emailEl = document.getElementById('repEmailLink');
+  if (nameEl) nameEl.textContent = SALES_REP.name || '';
+  if (emailEl && SALES_REP.email) {
+    emailEl.textContent = SALES_REP.email;
+    emailEl.href = 'mailto:' + SALES_REP.email;
+  }
+}
+
+function buildProgress() {
+  const wrap = document.getElementById('progressSteps');
+  STEP_LABELS.forEach((lbl, i) => {
+    const num = i + 1;
+    const isLast = i === STEP_LABELS.length - 1;
+    wrap.innerHTML += `
+      <div class="prog-step" onclick="jumpToStep(${num})">
+        <div class="prog-dot-wrap">
+          <div class="prog-dot ${state.step === num ? 'active' : state.step > num ? 'done' : ''}" id="pdot-${num}">
+            ${state.step > num ? '✓' : num}
+          </div>
+        </div>
+      </div>
+      ${!isLast ? '<div class="prog-line" id="pline-'+num+'"></div>' : ''}
+    `;
+  });
+}
+
+function updateProgress() {
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const dot = document.getElementById('pdot-'+i);
+    if (!dot) continue;
+    if (i === state.step) {
+      dot.className = 'prog-dot active';
+      dot.textContent = i;
+    } else if (i < state.step) {
+      dot.className = 'prog-dot done';
+      dot.textContent = '✓';
+    } else {
+      dot.className = 'prog-dot';
+      dot.textContent = i;
+    }
+    const line = document.getElementById('pline-'+i);
+    if (line) line.className = 'prog-line ' + (i < state.step ? 'done' : '');
+  }
+}
+
+// ══════════════════════════════════
+//  PAYWALL
+// ══════════════════════════════════
+// Trigger: fire the gate after PAYWALL_DELAY_SECONDS of user activity
+// on page (scroll OR clicking a property tile). This keeps quick bouncers
+// from hitting the wall before they've engaged.
+let paywallTriggered = false;
+let paywallTimerStarted = false;
+function startPaywallTimer() {
+  const startIfNeeded = () => {
+    if (paywallTimerStarted || paywallTriggered || state.paywallUnlocked) return;
+    paywallTimerStarted = true;
+    setTimeout(triggerPaywall, PAYWALL_DELAY_SECONDS * 1000);
+  };
+  window.addEventListener('scroll', startIfNeeded, { passive: true });
+  // Also start when they tap a property tile — engagement signal
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.prop-tile')) startIfNeeded();
+  }, true);
+}
+
+function triggerPaywall() {
+  if (paywallTriggered || state.paywallUnlocked) return;
+  paywallTriggered = true;
+  const gate = document.getElementById('paywallGate');
+  gate.classList.add('visible');
+  // Scroll the gate into view gently
+  setTimeout(() => {
+    gate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const input = document.getElementById('paywallName');
+    if (input) input.focus();
+  }, 300);
+}
+
+function clearPaywallError() {
+  document.getElementById('paywallName').classList.remove('error');
+  document.getElementById('paywallEmail').classList.remove('error');
+}
+
+function submitPaywall() {
+  const nameInput = document.getElementById('paywallName');
+  const emailInput = document.getElementById('paywallEmail');
+  const name = nameInput.value.trim();
+  const email = emailInput.value.trim();
+
+  // Validate name
+  if (!name) {
+    nameInput.classList.add('error');
+    nameInput.focus();
+    return;
+  }
+  // Validate email — simple well-formed check, not an ironclad RFC parse
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!email || !emailOk) {
+    emailInput.classList.add('error');
+    emailInput.focus();
+    return;
+  }
+
+  state.name = name;
+  state.email = email;
+  state.paywallUnlocked = true;
+
+  // Unlock the gated section
+  document.getElementById('gatedContent').classList.remove('paywall-locked');
+  // Hide the gate
+  const gate = document.getElementById('paywallGate');
+  gate.style.transition = 'opacity 0.35s, transform 0.35s';
+  gate.style.opacity = '0';
+  gate.style.transform = 'translateY(-12px)';
+  setTimeout(() => gate.style.display = 'none', 380);
+
+  // Immediately sync name + email to the sheet so the rep sees this prospect
+  sendToSheet(1, 'name_captured');
+}
+
+// ══════════════════════════════════
+//  PROPERTY GRID (multi-select tiles)
+// ══════════════════════════════════
+function buildPropertyGrid() {
+  const container = document.getElementById('propertyGrid');
+  container.innerHTML = PROPERTY_DEFS.map(d => `
+    <div class="prop-tile" data-val="${d.val}" onclick="toggleProp('${d.val}')">
+      <span class="prop-tile-icon">${d.icon}</span>
+      <div class="prop-tile-name">${d.name}</div>
+    </div>
+  `).join('');
+}
+
+function toggleProp(val) {
+  const idx = state.selectedProps.indexOf(val);
+  const tile = document.querySelector(`.prop-tile[data-val="${val}"]`);
+  if (idx > -1) {
+    state.selectedProps.splice(idx, 1);
+    delete state.locConfigs[val];
+    tile.classList.remove('selected');
+  } else {
+    state.selectedProps.push(val);
+    // Seed with default config
+    state.locConfigs[val] = {
+      mode: 'default',
+      count: 1,
+      units: DEFAULT_DENOM[val] || 150,
+      machine: DEFAULT_MACHINE_BY_PROP[val] || 'snacks-drinks-ai',
+    };
+    tile.classList.add('selected');
+  }
+  document.getElementById('propError').style.display = 'none';
+  renderLocationCards();
+}
+
+// ══════════════════════════════════
+//  LOCATION CONFIG CARDS (default / custom toggle)
+// ══════════════════════════════════
+function renderLocationCards() {
+  const container = document.getElementById('locationCards');
+  if (state.selectedProps.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = state.selectedProps.map(val => renderLocCard(val)).join('');
+}
+
+function renderLocCard(val) {
+  const def = PROPERTY_DEFS.find(p => p.val === val);
+  const cfg = state.locConfigs[val];
+  const unitLabel = UNIT_TYPE_MAP[val] || 'units';
+  const defaultUnits = DEFAULT_DENOM[val] || 150;
+  const defaultMach = DEFAULT_MACHINE_BY_PROP[val] || 'snacks-drinks-ai';
+  const defaultMachName = MACHINE_DEFS.find(m => m.val === defaultMach)?.name || 'Snacks + Drinks';
+
+  const machOptions = MACHINE_DEFS.map(m =>
+    `<option value="${m.val}" ${cfg.machine === m.val ? 'selected' : ''}>${m.icon} ${m.name}</option>`
+  ).join('');
+
+  const isCustom = cfg.mode === 'custom';
+
+  return `
+    <div class="loc-card" id="loc-card-${val}">
+      <div class="loc-card-header">
+        <div class="loc-card-title">
+          <span class="icon">${def.icon}</span>
+          <span>${def.name}</span>
+        </div>
+        <div class="qty-stepper">
+          <span class="qty-label">How many?</span>
+          <button type="button" class="qty-btn ${cfg.count <= 1 ? 'disabled' : ''}" onclick="adjustLocCount('${val}', -1)">−</button>
+          <span class="qty-val" id="qty-val-${val}">${cfg.count}</span>
+          <button type="button" class="qty-btn" onclick="adjustLocCount('${val}', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="mode-toggle">
+        <button type="button" class="mode-toggle-btn ${!isCustom ? 'active' : ''}" onclick="setLocMode('${val}', 'default')">Use Average</button>
+        <button type="button" class="mode-toggle-btn ${isCustom ? 'active' : ''}" onclick="setLocMode('${val}', 'custom')">Customize</button>
+      </div>
+
+      <div id="loc-body-${val}">
+        ${isCustom ? renderCustomBody(val, unitLabel, cfg, machOptions) : renderDefaultBody(val, unitLabel, defaultUnits, defaultMachName)}
+      </div>
+    </div>
+  `;
+}
+
+function renderDefaultBody(val, unitLabel, defaultUnits, defaultMachName) {
+  return `
+    <div class="default-panel">
+      <div class="default-panel-col">
+        <div class="default-panel-label">Typical ${unitLabel}</div>
+        <div class="default-panel-value">${defaultUnits.toLocaleString()}</div>
+        <div class="default-panel-sub">Average across VendingPreneur routes</div>
+      </div>
+      <div class="default-panel-col">
+        <div class="default-panel-label">Recommended Machine</div>
+        <div class="default-panel-value" style="font-size:14px;">${defaultMachName}</div>
+        <div class="default-panel-sub">Best match for this location type</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCustomBody(val, unitLabel, cfg, machOptions) {
+  const unitsVal = typeof cfg.units === 'number' ? cfg.units.toLocaleString() : (cfg.units || '');
+  return `
+    <div class="custom-panel">
+      <div>
+        <div class="custom-field-label"># of ${unitLabel}</div>
+        <input class="form-input" type="text" inputmode="numeric"
+               value="${unitsVal}"
+               oninput="updateLocUnits('${val}', this)">
+      </div>
+      <div>
+        <div class="custom-field-label">Machine Type</div>
+        <select class="form-input" onchange="updateLocMachine('${val}', this.value)">
+          ${machOptions}
+        </select>
+      </div>
+    </div>
+  `;
+}
+
+function setLocMode(val, mode) {
+  state.locConfigs[val].mode = mode;
+  // If switching to custom, seed fields with current default values so user can tweak
+  if (mode === 'custom') {
+    if (!state.locConfigs[val].units) state.locConfigs[val].units = DEFAULT_DENOM[val] || 150;
+    if (!state.locConfigs[val].machine) state.locConfigs[val].machine = DEFAULT_MACHINE_BY_PROP[val] || 'snacks-drinks-ai';
+  }
+  // Re-render only this card
+  const card = document.getElementById('loc-card-' + val);
+  if (card) card.outerHTML = renderLocCard(val);
+}
+
+function adjustLocCount(val, delta) {
+  const cfg = state.locConfigs[val];
+  const newCount = Math.max(1, (cfg.count || 1) + delta);
+  cfg.count = newCount;
+  const el = document.getElementById('qty-val-' + val);
+  if (el) el.textContent = newCount;
+  // Update the minus-button disabled state
+  const card = document.getElementById('loc-card-' + val);
+  if (card) {
+    const minus = card.querySelector('.qty-stepper .qty-btn');
+    if (minus) minus.className = 'qty-btn' + (newCount <= 1 ? ' disabled' : '');
+  }
+}
+
+function updateLocUnits(val, input) {
+  let digits = input.value.replace(/\D/g, '');
+  if (digits) input.value = parseInt(digits).toLocaleString();
+  state.locConfigs[val].units = parseInt(digits) || 0;
+}
+
+function updateLocMachine(val, machVal) {
+  state.locConfigs[val].machine = machVal;
+}
+
+// ══════════════════════════════════
+//  DENSITY + GOALS + PROFIT
+// ══════════════════════════════════
+function selectDensity(el) {
+  document.querySelectorAll('[data-val]').forEach(c => {
+    if (c.parentElement && c.parentElement.classList.contains('cols-4')) {
+      c.classList.remove('selected');
+    }
+  });
+  el.classList.add('selected');
+  state.density = el.dataset.val;
+  document.getElementById('densityError').style.display = 'none';
+}
+
+function selectGoal(el) {
+  const goal = el.dataset.goal;
+  const idx = state.goalRank.indexOf(goal);
+  if (idx > -1) {
+    // Already selected → deselect
+    state.goalRank.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    if (state.goalRank.length >= 2) {
+      // Replace the oldest one
+      const oldest = state.goalRank.shift();
+      const oldCard = document.querySelector(`.goal-card[data-goal="${oldest}"]`);
+      if (oldCard) oldCard.classList.remove('selected');
+    }
+    state.goalRank.push(goal);
+    el.classList.add('selected');
+  }
+  // Re-label ranks on selected cards
+  state.goalRank.forEach((g, i) => {
+    const badge = document.getElementById('gr-' + g);
+    if (badge) badge.textContent = '#' + (i + 1);
+  });
+  document.getElementById('goalError').style.display = 'none';
+}
+
+function formatProfit(input) {
+  let digits = input.value.replace(/\D/g, '');
+  if (digits) {
+    const num = parseInt(digits);
+    input.value = num.toLocaleString();
+    state.desiredProfit = num;
+  } else {
+    state.desiredProfit = null;
+  }
+}
+
+// ══════════════════════════════════
+//  CONTACT CAPTURE (page 2 — all optional)
+// ══════════════════════════════════
+function formatPhone(input) {
+  // Light US-style formatting: (###) ###-####
+  let digits = input.value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length > 10 && digits.charAt(0) === '1') digits = digits.slice(1);
+  digits = digits.slice(0, 10);
+  let formatted = digits;
+  if (digits.length > 6) {
+    formatted = '(' + digits.slice(0,3) + ') ' + digits.slice(3,6) + '-' + digits.slice(6);
+  } else if (digits.length > 3) {
+    formatted = '(' + digits.slice(0,3) + ') ' + digits.slice(3);
+  } else if (digits.length > 0) {
+    formatted = '(' + digits;
+  }
+  input.value = formatted;
+}
+
+function onContactChange() {
+  // Pull current field values into state (doesn't save yet)
+  state.email = document.getElementById('ccEmail').value.trim();
+  state.phone = document.getElementById('ccPhone').value.trim();
+  state.city = document.getElementById('ccCity').value.trim();
+  state.reason = document.getElementById('ccReason').value;
+}
+
+function contactSnapshot() {
+  return [state.email, state.phone, state.city, state.reason].join('|');
+}
+
+// Save on blur only if something actually changed since the last save.
+// Avoids spamming the webhook with every keystroke or re-blur of empty fields.
+function saveContactIfChanged() {
+  onContactChange();
+  const snap = contactSnapshot();
+  if (snap === state._lastContactSnapshot) return;
+  if (!snap.replace(/\|/g, '')) return;  // everything blank — skip
+  state._lastContactSnapshot = snap;
+  showContactStatus('saving');
+  sendToSheet(2, 'contact_updated');
+  // Give the fetch a sec and then flip to saved
+  setTimeout(() => showContactStatus('saved'), 600);
+}
+
+// Explicit "Send Me My Info" button — always fires, even if unchanged.
+function saveContactNow() {
+  onContactChange();
+  const snap = contactSnapshot();
+  if (!snap.replace(/\|/g, '')) {
+    showContactStatus('empty');
+    return;
+  }
+  state._lastContactSnapshot = snap;
+  showContactStatus('saving');
+  sendToSheet(2, 'contact_updated');
+  setTimeout(() => showContactStatus('saved'), 600);
+}
+
+function showContactStatus(kind) {
+  const el = document.getElementById('ccSaveStatus');
+  if (!el) return;
+  el.classList.remove('saving');
+  if (kind === 'saving') {
+    el.textContent = 'Saving…';
+    el.classList.add('saving', 'visible');
+  } else if (kind === 'saved') {
+    el.textContent = '✓ Saved — we\'ll be in touch';
+    el.classList.remove('saving');
+    el.classList.add('visible');
+  } else if (kind === 'empty') {
+    el.textContent = 'Fill in at least one field to save';
+    el.classList.remove('saving');
+    el.classList.add('visible');
+    setTimeout(() => el.classList.remove('visible'), 2400);
+  }
+}
+
+// ══════════════════════════════════
+//  NAVIGATION + VALIDATION
+// ══════════════════════════════════
+function showStep(id) {
+  document.querySelectorAll('.step-screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  document.documentElement.scrollTop = 0;
+  window.scrollTo(0, 0);
+  updateProgress();
+}
+
+function nextStep() {
+  if (state.step === 1 && !validateStep1()) return;
+  sendToSheet(state.step, state.step === TOTAL_STEPS ? 'completed' : 'in_progress');
+  if (state.step < TOTAL_STEPS) {
+    state.step++;
+    if (state.step > state.maxVisited) state.maxVisited = state.step;
+    showStep('step-' + state.step);
+    if (state.step === 2) computeProjection();
+  }
+}
+
+function prevStep() {
+  if (state.step > 1) {
+    state.step--;
+    showStep('step-' + state.step);
+  }
+}
+
+function jumpToStep(n) {
+  if (n === state.step || n < 1 || n > TOTAL_STEPS) return;
+  if (n > state.maxVisited) return;
+  if (n > state.step && state.step === 1 && !validateStep1()) return;
+  state.step = n;
+  showStep('step-' + n);
+  if (n === 2) computeProjection();
+}
+
+function validateStep1() {
+  // 1. Require at least one selected property
+  if (state.selectedProps.length === 0) {
+    document.getElementById('propError').style.display = 'block';
+    document.getElementById('propertyGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return false;
+  }
+  // 2. Require paywall unlocked (name captured)
+  if (!state.paywallUnlocked) {
+    triggerPaywall();
+    return false;
+  }
+  // 3. Require density
+  if (!state.density) {
+    const err = document.getElementById('densityError');
+    err.style.display = 'block';
+    err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return false;
+  }
+  // 4. Require at least one goal
+  if (state.goalRank.length === 0) {
+    const err = document.getElementById('goalError');
+    err.style.display = 'block';
+    err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return false;
+  }
+  // 5. Validate custom-mode cards have units + machine filled
+  for (const val of state.selectedProps) {
+    const cfg = state.locConfigs[val];
+    if (cfg.mode === 'custom') {
+      if (!cfg.units || cfg.units <= 0 || !cfg.machine) {
+        document.getElementById('loc-card-' + val).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// ══════════════════════════════════
+//  PROJECTION
+// ══════════════════════════════════
+function computeProjection() {
+  const $$ = v => '$' + Math.round(v).toLocaleString();
+
+  // Build placements array by expanding count per property
+  const placements = [];
+  state.selectedProps.forEach(val => {
+    const cfg = state.locConfigs[val];
+    const units = cfg.units || DEFAULT_DENOM[val] || 150;
+    const machine = cfg.machine || DEFAULT_MACHINE_BY_PROP[val] || 'snacks-drinks-ai';
+    for (let i = 0; i < cfg.count; i++) {
+      placements.push({ property: val, machine, units, mode: cfg.mode });
+    }
+  });
+
+  const machineCount = placements.length;
+
+  let totalMonthlyRev = 0;
+  placements.forEach(p => {
+    const dpm = lookupBlendedDPM(p.property, p.machine, state.density);
+    totalMonthlyRev += dpm * p.units;
+  });
+  totalMonthlyRev = Math.round(totalMonthlyRev);
+
+  const annualRev = totalMonthlyRev * 12;
+  const cogs = annualRev * 0.35;
+  const saas = annualRev * 0.105;
+  const dataFees = machineCount * 25 * 12;
+  const insurance = 100 * 12;
+  const totalExpenses = cogs + saas + dataFees + insurance;
+  const annualProfit = annualRev - totalExpenses;
+  const monthlyProfit = annualProfit / 12;
+
+  const densityName = DENSITY_NAME_MAP[state.density] || 'City';
+  document.getElementById('projName').textContent = machineCount + '-machine route — ' + densityName + ' market';
+  const primaryGoal = state.goalRank[0];
+  const tags = [
+    '<strong>' + machineCount + '</strong> machine' + (machineCount !== 1 ? 's' : ''),
+    'Market: <strong>' + densityName + '</strong>',
+    primaryGoal ? 'Goal: <strong>' + (GOAL_LABELS[primaryGoal] || primaryGoal) + '</strong>' : '',
+  ].filter(t => t).map(t => '<div class="proj-summary-tag">' + t + '</div>').join('');
+  document.getElementById('projTags').innerHTML = tags;
+
+  document.getElementById('monthlyProfit').textContent = $$(monthlyProfit);
+  document.getElementById('yearlyProfit').textContent = $$(annualProfit);
+
+  const tbl = document.getElementById('projTable');
+  tbl.innerHTML =
+    row('Annual Gross Revenue', $$(annualRev), 'pos') +
+    row('Cost of Goods (35%)', '−' + $$(cogs), 'neg') +
+    row('SAAS Fees (10.5%)', '−' + $$(saas), 'neg') +
+    row('Data Fees ($25/mo × ' + machineCount + ' machines)', '−' + $$(dataFees), 'neg') +
+    row('Insurance ($100/mo)', '−' + $$(insurance), 'neg') +
+    rowTotal('Annual Take-Home Profit', $$(annualProfit), 'pos');
+
+  document.getElementById('costOfWaitingNum').textContent = $$(monthlyProfit);
+
+  state.projection = {
+    monthly_revenue: totalMonthlyRev,
+    annual_revenue: annualRev,
+    monthly_profit: Math.round(monthlyProfit),
+    annual_profit: Math.round(annualProfit),
+    cost_of_waiting: Math.round(monthlyProfit),
+    num_machines: machineCount,
+  };
+
+  // Pre-fill the contact-capture email from the paywall (so they don't
+  // have to retype it). The rest of the fields stay blank.
+  const ccEmailEl = document.getElementById('ccEmail');
+  if (ccEmailEl && !ccEmailEl.value && state.email) {
+    ccEmailEl.value = state.email;
+  }
+
+  sendToSheet(2, 'completed');
+}
+
+function row(label, value, cls) {
+  return '<div class="proj-row"><div class="proj-row-label">' + label + '</div><div class="proj-row-value ' + (cls || '') + '">' + value + '</div></div>';
+}
+function rowTotal(label, value, cls) {
+  return '<div class="proj-row total"><div class="proj-row-label">' + label + '</div><div class="proj-row-value ' + (cls || '') + '">' + value + '</div></div>';
+}
+
+// ══════════════════════════════════
+//  SHAREABLE URL
+// ══════════════════════════════════
+function collectRestorableState() {
+  return {
+    s: {
+      step: state.step,
+      maxVisited: state.maxVisited,
+      name: state.name,
+      paywallUnlocked: state.paywallUnlocked,
+      selectedProps: state.selectedProps,
+      locConfigs: state.locConfigs,
+      density: state.density,
+      goalRank: state.goalRank,
+      desiredProfit: state.desiredProfit,
+      projection: state.projection,
+      email: state.email,
+      phone: state.phone,
+      city: state.city,
+      reason: state.reason,
+    },
+  };
+}
+
+function generateShareableURL() {
+  try {
+    const data = collectRestorableState();
+    const json = JSON.stringify(data);
+    const compressed = LZString.compressToEncodedURIComponent(json);
+    const baseURL = window.location.origin + window.location.pathname;
+    return baseURL + '?sid=' + encodeURIComponent(state.session_id) + '&d=' + compressed;
+  } catch (e) {
+    return '';
+  }
+}
+
+function restoreFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('d')) return false;
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(params.get('d'));
+    if (!json) return false;
+    const data = JSON.parse(json);
+    if (data.s) {
+      Object.keys(data.s).forEach(k => {
+        if (data.s[k] !== null && data.s[k] !== undefined) state[k] = data.s[k];
+      });
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function restoreUIFromState() {
+  // Property tiles
+  state.selectedProps.forEach(val => {
+    const tile = document.querySelector(`.prop-tile[data-val="${val}"]`);
+    if (tile) tile.classList.add('selected');
+  });
+  renderLocationCards();
+
+  // Paywall
+  if (state.paywallUnlocked) {
+    document.getElementById('gatedContent').classList.remove('paywall-locked');
+    document.getElementById('paywallGate').style.display = 'none';
+  }
+  // Density
+  if (state.density) {
+    const c = document.querySelector('[data-val="' + state.density + '"]');
+    if (c && c.parentElement && c.parentElement.classList.contains('cols-4')) c.classList.add('selected');
+  }
+  // Goals
+  state.goalRank.forEach((g, i) => {
+    const card = document.querySelector(`.goal-card[data-goal="${g}"]`);
+    if (card) card.classList.add('selected');
+    const badge = document.getElementById('gr-' + g);
+    if (badge) badge.textContent = '#' + (i + 1);
+  });
+  // Desired profit
+  if (state.desiredProfit) {
+    const el = document.getElementById('fnDesiredProfit');
+    if (el) el.value = state.desiredProfit.toLocaleString();
+  }
+  // Contact fields (page 2)
+  if (state.email) { const el = document.getElementById('ccEmail'); if (el) el.value = state.email; }
+  if (state.phone) { const el = document.getElementById('ccPhone'); if (el) el.value = state.phone; }
+  if (state.city) { const el = document.getElementById('ccCity'); if (el) el.value = state.city; }
+  if (state.reason) { const el = document.getElementById('ccReason'); if (el) el.value = state.reason; }
+  // Navigate to the step they were on
+  if (state.step && state.step >= 1 && state.step <= TOTAL_STEPS) {
+    state.maxVisited = Math.max(state.maxVisited || 1, state.step);
+    showStep('step-' + state.step);
+    if (state.step === 2) computeProjection();
+  }
+}
+
+// ══════════════════════════════════
+//  GOOGLE SHEET POST
+// ══════════════════════════════════
+function sendToSheet(stepNum, status) {
+  // Build the placements array (expanded by count)
+  const placementsArray = [];
+  state.selectedProps.forEach(val => {
+    const cfg = state.locConfigs[val] || {};
+    const units = cfg.units || DEFAULT_DENOM[val] || 150;
+    const machine = cfg.machine || DEFAULT_MACHINE_BY_PROP[val] || 'snacks-drinks-ai';
+    for (let i = 0; i < (cfg.count || 1); i++) {
+      placementsArray.push({
+        property: PROP_NAME_MAP[val] || val,
+        machine: MACH_NAME_MAP[machine] || machine,
+        units: units,
+        mode: cfg.mode || 'default',
+      });
+    }
+  });
+
+  const payload = {
+    session_id: state.session_id,
+    timestamp: new Date().toISOString(),
+    current_step: stepNum,
+    current_step_name: STEP_NAMES_MAP[stepNum] || '',
+    status: status || (stepNum === TOTAL_STEPS ? 'completed' : 'in_progress'),
+
+    name: state.name || '',
+    sales_rep_name: SALES_REP.name || '',
+
+    // Optional contact (captured on page 2)
+    email: state.email || '',
+    phone: state.phone || '',
+    city: state.city || '',
+    reason: state.reason ? (REASON_LABELS[state.reason] || state.reason) : '',
+
+    // Selections
+    selected_props: state.selectedProps.map(v => PROP_NAME_MAP[v] || v).join(', '),
+    goal_1: state.goalRank[0] ? (GOAL_LABELS[state.goalRank[0]] || state.goalRank[0]) : '',
+    goal_2: state.goalRank[1] ? (GOAL_LABELS[state.goalRank[1]] || state.goalRank[1]) : '',
+    desired_monthly_profit: state.desiredProfit || '',
+    num_machines: placementsArray.length || '',
+    market_density: DENSITY_NAME_MAP[state.density] || '',
+    route_placements: JSON.stringify(placementsArray),
+
+    // Projection
+    est_monthly_revenue: state.projection?.monthly_revenue || '',
+    est_annual_revenue: state.projection?.annual_revenue || '',
+    est_monthly_profit: state.projection?.monthly_profit || '',
+    est_annual_profit: state.projection?.annual_profit || '',
+    cost_of_waiting: state.projection?.cost_of_waiting || '',
+
+    shareable_url: generateShareableURL(),
+  };
+
+  if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.indexOf('REPLACE_WITH') === 0) {
+    console.log('[sendToSheet stub] step:', stepNum, 'payload:', payload);
+    return;
+  }
+
+  fetch(SHEET_WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(err => console.warn('Sheet send failed:', err));
+}
+</script>
+
+</body>
+</html>
