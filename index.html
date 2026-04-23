@@ -518,6 +518,28 @@ select.form-input {
   .proj-big-col + .proj-big-col { border-left: none; border-top: 1px solid var(--border); padding-top: 16px; }
 }
 
+/* Total Asset Value — standalone "wow" box below the profit numbers */
+.asset-value-box {
+  background: linear-gradient(135deg, rgba(107,207,240,0.18), rgba(162,242,212,0.22));
+  border: 2px solid var(--gold-2);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(31,154,197,0.12);
+}
+.av-eyebrow {
+  font-size: 12px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--navy); margin-bottom: 6px;
+}
+.av-num {
+  font-family: 'Poppins', sans-serif;
+  font-size: 44px; font-weight: 900;
+  color: var(--navy); line-height: 1.05;
+  margin: 4px 0 6px;
+}
+.av-sub { font-size: 13px; color: var(--text-mid); }
+
 .proj-table {
   background: var(--white);
   border: 1px solid var(--border);
@@ -557,6 +579,32 @@ select.form-input {
 .cw-headline { font-size: 16px; color: var(--text); line-height: 1.5; }
 .cw-num { font-family: 'Poppins', sans-serif; font-size: 42px; font-weight: 900; color: var(--red); margin: 8px 0; }
 .cw-sub { font-size: 13px; color: var(--text-mid); }
+
+/* Inline disclaimer above the cost-of-waiting box */
+.proj-disclaimer {
+  background: var(--bg-lighter);
+  border-left: 3px solid var(--text-light);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px; color: var(--text-mid); line-height: 1.5;
+}
+.proj-disclaimer strong { color: var(--navy); font-weight: 700; }
+
+/* Comparison box — vending vs other side hustles, sits below cost of waiting */
+.compare-box {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--bg-light);
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  font-size: 13.5px; color: var(--text-mid); line-height: 1.55;
+}
+.compare-icon {
+  font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 1px;
+}
+.compare-text strong { color: var(--navy); font-weight: 700; }
 
 .cta-section {
   background: var(--bg-light);
@@ -705,6 +753,25 @@ select.form-input {
 .goal-icon { font-size: 22px; flex-shrink: 0; }
 .goal-text { font-weight: 700; font-size: 14px; color: var(--navy); }
 
+/* ─── RECOMMENDED MACHINES BOX ─── */
+.rec-machines-box {
+  text-align: center; padding: 24px;
+  background: var(--bg-light);
+  border: 1.5px solid var(--card-border);
+  border-radius: var(--radius);
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+.rec-machines-num {
+  font-family: 'Poppins', sans-serif;
+  font-size: 48px; font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+.rec-machines-label {
+  font-size: 13px; color: var(--text-mid); margin-top: 6px;
+}
+
 @media (max-width: 600px) {
   .step-title { font-size: 28px; }
   .form-row { grid-template-columns: 1fr; }
@@ -755,9 +822,9 @@ select.form-input {
     <div class="paywall-gate" id="paywallGate">
       <div class="paywall-eyebrow">👀 You're almost there</div>
       <div class="paywall-title">Who should we build this projection for?</div>
-      <div class="paywall-sub">Drop your first name and email and we'll unlock the rest of your custom projection.</div>
+      <div class="paywall-sub">Drop your full name and email and we'll unlock the rest of your custom projection.</div>
       <div class="paywall-form">
-        <input type="text" id="paywallName" placeholder="First name" onkeydown="if(event.key==='Enter'){submitPaywall();}" oninput="clearPaywallError()">
+        <input type="text" id="paywallName" placeholder="Full name" onkeydown="if(event.key==='Enter'){submitPaywall();}" oninput="clearPaywallError()">
         <input type="email" id="paywallEmail" placeholder="Email address" onkeydown="if(event.key==='Enter'){submitPaywall();}" oninput="clearPaywallError()">
         <button onclick="submitPaywall()">Unlock →</button>
       </div>
@@ -825,11 +892,19 @@ select.form-input {
         <div class="form-field">
           <div style="position:relative;">
             <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:700;color:var(--primary);z-index:1;">$</span>
-            <input class="form-input" type="text" placeholder="2,500" id="fnDesiredProfit" style="padding-left:32px;font-size:18px;font-weight:600;" oninput="formatProfit(this)">
+            <input class="form-input" type="text" placeholder="2,500" id="fnDesiredProfit" style="padding-left:32px;font-size:18px;font-weight:600;" oninput="formatProfit(this); recalcMachines();">
           </div>
           <span style="font-size:12px;color:var(--text-mid);margin-top:4px;display:block;">per month</span>
         </div>
       </div>
+
+      <!-- RECOMMENDED NUMBER OF MACHINES -->
+      <div class="multi-label">Your Recommended Number of Machines</div>
+      <div class="rec-machines-box">
+        <div class="rec-machines-num" id="recMachineNum">—</div>
+        <div class="rec-machines-label" id="recMachineLabel">Pick your goals and enter desired profit to see recommendation</div>
+      </div>
+      <p class="info-box">💡 More machines isn't always better. Location quality and strategy matter more than count — and they're easier to manage.</p>
 
     </div><!-- /#gatedContent -->
 
@@ -864,14 +939,31 @@ select.form-input {
       </div>
     </div>
 
+    <!-- TOTAL ASSET VALUE — what the route is worth if sold -->
+    <div class="asset-value-box">
+      <div class="av-eyebrow">💎 Total Asset Value</div>
+      <div class="av-num" id="assetValue">—</div>
+      <div class="av-sub">what your route could be worth if you ever sold it</div>
+    </div>
+
     <div class="multi-label" style="margin-top:8px;">Annual Breakdown</div>
     <div class="proj-table" id="projTable"></div>
+
+    <div class="proj-disclaimer">
+      <strong>Heads up:</strong> these numbers don't include startup costs like the machine itself or the VendingPreneur program — though both are typically tax write-offs.
+    </div>
 
     <div class="cost-waiting-box">
       <div class="cw-eyebrow">⏰ Cost of Waiting</div>
       <div class="cw-headline">Each month you wait is costing you up to</div>
       <div class="cw-num" id="costOfWaitingNum">—</div>
       <div class="cw-sub">in potential monthly take-home profit</div>
+    </div>
+
+    <!-- Comparison disclaimer — vending vs other "side hustles" -->
+    <div class="compare-box">
+      <span class="compare-icon">📊</span>
+      <span class="compare-text">Other passive income opportunities like <strong>Airbnb</strong>, <strong>Uber</strong>, and <strong>online surveys</strong> are more time-consuming, more risky, and don't generate as much profit.</span>
     </div>
 
     <!-- ══ CONTACT CAPTURE — all optional ══ -->
@@ -950,7 +1042,7 @@ select.form-input {
 // ══════════════════════════════════
 //  CONFIG — EDIT PER SALES REP
 // ══════════════════════════════════
-const SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw5pNbBa4512eHmVM4JnyP36TCfFgMJvsq74rqCYiZ_8wVteZcYQcY55N2bpVOq8pT3cA/exec';
+const SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzsSQIOp_pH_PYFUDfa-AXHIyYqE3Sll-UIGxM84BqwhOzXAj6Z5MLow9hKACWkq52M/exec';
 
 const SALES_REP = {
   name: 'Jason Aaron',
@@ -959,7 +1051,7 @@ const SALES_REP = {
 };
 
 // Paywall trigger: seconds of scrolling before we gate the rest of the form.
-const PAYWALL_DELAY_SECONDS = 15;
+const PAYWALL_DELAY_SECONDS = 10;
 
 // ══════════════════════════════════
 //  SESSION ID
@@ -996,6 +1088,7 @@ const state = {
   density: null,
   goalRank: [],                // ordered array of goal keys (max 2)
   desiredProfit: null,
+  recommendedMachines: null,   // computed from goals + desired profit (display only)
   projection: null,
   // Optional contact (captured on page 2, all optional)
   email: '',
@@ -1090,26 +1183,32 @@ const MACH_NAME_MAP = {
   'micromarket':'Micromarket','other':'Other',
 };
 
-// The most common / "default" machine recommendation per property type.
-// Drives the "Default config" revenue lookup so we can compute without asking.
+// Recommended machine per property type — DATA-DRIVEN.
+// Computed from Route Group Analysis: highest weighted-avg $/machine/unit
+// per (Property × Machine) combo, with these filters:
+//   - "Other" excluded (poor sales pitch)
+//   - Min 3 locations preferred (statistically defensible)
+//   - Falls back to absolute-best when no machine has ≥3 locations
+// This same machine is what powers the "Use Average" projection — so the
+// recommendation and the revenue numbers stay in sync.
 const DEFAULT_MACHINE_BY_PROP = {
-  'high-rise-apartment':   'snacks-drinks-ai',
-  'mid-rise-apartment':    'snacks-drinks-ai',
-  'garden-style-apartment':'snacks-drinks-ai',
-  'tower-apartment':       'snacks-drinks-ai',
-  'office':                'snacks-drinks-ai',
-  'warehouse':             'drink-machine',
-  'manufacturing':         'snacks-drinks-ai',
-  'gym':                   'drink-machine',
-  'rec-center':            'drink-machine',
-  'hospital':              'drink-machine',
-  'medical-outpatient':    'drink-machine',
-  'veterinary':            'drink-machine',
-  'hotel':                 'drink-machine',
-  'school':                'snacks-drinks-ai',
-  'municipal-gov':         'drink-machine',
-  'shelter':               'snacks-drinks-ai',
-  'other-business':        'snacks-drinks-ai',
+  'garden-style-apartment':'snacks-drinks-ai',  // 25 locs · $2.91/unit
+  'gym':                   'drink-machine',     // 16 locs · $5.06/unit
+  'high-rise-apartment':   'drink-machine',     // 6 locs · $5.74/unit
+  'hospital':              'drink-machine',     // 1 loc (fallback) · $3.47/unit
+  'hotel':                 'snacks-drinks-ai',  // 1 loc (fallback) · $9.00/unit
+  'manufacturing':         'drink-machine',     // 9 locs · $11.10/unit
+  'medical-outpatient':    'drink-machine',     // 6 locs · $3.82/unit
+  'mid-rise-apartment':    'micromarket',       // 3 locs · $10.24/unit
+  'municipal-gov':         'snacks-drinks-ai',  // 3 locs · $5.41/unit
+  'office':                'micromarket',       // 5 locs · $11.97/unit
+  'other-business':        'micromarket',       // 4 locs · $13.73/unit
+  'rec-center':            'drink-machine',     // 1 loc (fallback) · $7.28/unit
+  'school':                'drink-machine',     // 12 locs · $6.38/unit
+  'shelter':               'snacks-drinks-ai',  // 1 loc (fallback) · $4.96/unit
+  'tower-apartment':       'freezer',           // 1 loc (fallback) · $14.59/unit
+  'veterinary':            'freezer',           // 1 loc (fallback) · $11.47/unit
+  'warehouse':             'drink-machine',     // 11 locs · $19.11/unit
 };
 
 const DENSITY_NAME_MAP = {
@@ -1208,6 +1307,23 @@ const REASON_LABELS = {
   'curious': 'Just exploring the idea',
   'other': 'Other',
 };
+
+// ══════════════════════════════════
+//  RECOMMENDED-MACHINES MATH
+// ══════════════════════════════════
+// Same logic as the original SLFU form:
+//  - Each goal maps to a typical machine count (small route → big route)
+//  - Profit goal maps to count via PROFIT_PER_MACHINE
+//  - When both are set, average them; otherwise use whichever exists.
+//  - #1 goal weighs more than #2 (RANK_WEIGHTS).
+const PROFIT_PER_MACHINE = 950;
+const GOAL_MACHINE_MAP = {
+  supplemental: 3,
+  replace: 9,
+  family: 11,
+  scale: 13,
+};
+const RANK_WEIGHTS = [3, 2];
 
 // ══════════════════════════════════
 //  INIT
@@ -1554,6 +1670,7 @@ function selectGoal(el) {
     if (badge) badge.textContent = '#' + (i + 1);
   });
   document.getElementById('goalError').style.display = 'none';
+  recalcMachines();
 }
 
 function formatProfit(input) {
@@ -1565,6 +1682,56 @@ function formatProfit(input) {
   } else {
     state.desiredProfit = null;
   }
+}
+
+// Recompute the recommended machine count from the current goals + profit.
+// Re-runs whenever goals change or desired-profit changes.
+function recalcMachines() {
+  const numEl = document.getElementById('recMachineNum');
+  const labelEl = document.getElementById('recMachineLabel');
+  if (!numEl) return;
+
+  const goals = state.goalRank.slice(0, 2);  // ranked: [#1, #2]
+  const desiredProfit = state.desiredProfit || 0;
+
+  let goalBased = null;
+  let profitBased = null;
+
+  if (goals.length > 0) {
+    let weightedSum = 0;
+    let weightTotal = 0;
+    goals.forEach((g, i) => {
+      const w = RANK_WEIGHTS[i] || 1;
+      weightedSum += (GOAL_MACHINE_MAP[g] || 0) * w;
+      weightTotal += w;
+    });
+    if (weightTotal > 0) goalBased = weightedSum / weightTotal;
+  }
+
+  if (desiredProfit > 0) {
+    profitBased = desiredProfit / PROFIT_PER_MACHINE;
+  }
+
+  let recommended;
+  if (goalBased !== null && profitBased !== null) {
+    recommended = Math.round((goalBased + profitBased) / 2);
+    labelEl.textContent = recommended + ' machines recommended (based on goals + desired profit)';
+  } else if (goalBased !== null) {
+    recommended = Math.round(goalBased);
+    labelEl.textContent = recommended + ' machine' + (recommended !== 1 ? 's' : '') + ' recommended (from goals)';
+  } else if (profitBased !== null) {
+    recommended = Math.round(profitBased);
+    labelEl.textContent = recommended + ' machine' + (recommended !== 1 ? 's' : '') + ' recommended (from desired profit)';
+  } else {
+    numEl.textContent = '—';
+    labelEl.textContent = 'Pick your goals and enter desired profit to see recommendation';
+    state.recommendedMachines = null;
+    return;
+  }
+
+  recommended = Math.max(1, recommended);
+  numEl.textContent = recommended;
+  state.recommendedMachines = recommended;
 }
 
 // ══════════════════════════════════
@@ -1771,6 +1938,12 @@ function computeProjection() {
   document.getElementById('monthlyProfit').textContent = $$(monthlyProfit);
   document.getElementById('yearlyProfit').textContent = $$(annualProfit);
 
+  // Total Asset Value: monthly revenue × 12 × 1.1 — typical sale multiple
+  // applied to gross annual revenue. Kept simple and stable across projection
+  // re-runs; the multiplier is intentionally a flat number for now.
+  const totalAssetValue = totalMonthlyRev * 12 * 1.1;
+  document.getElementById('assetValue').textContent = $$(totalAssetValue);
+
   const tbl = document.getElementById('projTable');
   tbl.innerHTML =
     row('Annual Gross Revenue', $$(annualRev), 'pos') +
@@ -1788,6 +1961,7 @@ function computeProjection() {
     monthly_profit: Math.round(monthlyProfit),
     annual_profit: Math.round(annualProfit),
     cost_of_waiting: Math.round(monthlyProfit),
+    total_asset_value: Math.round(totalAssetValue),
     num_machines: machineCount,
   };
 
@@ -1823,6 +1997,7 @@ function collectRestorableState() {
       density: state.density,
       goalRank: state.goalRank,
       desiredProfit: state.desiredProfit,
+      recommendedMachines: state.recommendedMachines,
       projection: state.projection,
       email: state.email,
       phone: state.phone,
@@ -1897,6 +2072,8 @@ function restoreUIFromState() {
   if (state.phone) { const el = document.getElementById('ccPhone'); if (el) el.value = state.phone; }
   if (state.city) { const el = document.getElementById('ccCity'); if (el) el.value = state.city; }
   if (state.reason) { const el = document.getElementById('ccReason'); if (el) el.value = state.reason; }
+  // Recompute the recommended machines now that goals + profit are restored
+  recalcMachines();
   // Navigate to the step they were on
   if (state.step && state.step >= 1 && state.step <= TOTAL_STEPS) {
     state.maxVisited = Math.max(state.maxVisited || 1, state.step);
@@ -1946,6 +2123,7 @@ function sendToSheet(stepNum, status) {
     goal_1: state.goalRank[0] ? (GOAL_LABELS[state.goalRank[0]] || state.goalRank[0]) : '',
     goal_2: state.goalRank[1] ? (GOAL_LABELS[state.goalRank[1]] || state.goalRank[1]) : '',
     desired_monthly_profit: state.desiredProfit || '',
+    recommended_machines: state.recommendedMachines || '',
     num_machines: placementsArray.length || '',
     market_density: DENSITY_NAME_MAP[state.density] || '',
     route_placements: JSON.stringify(placementsArray),
@@ -1956,6 +2134,7 @@ function sendToSheet(stepNum, status) {
     est_monthly_profit: state.projection?.monthly_profit || '',
     est_annual_profit: state.projection?.annual_profit || '',
     cost_of_waiting: state.projection?.cost_of_waiting || '',
+    total_asset_value: state.projection?.total_asset_value || '',
 
     shareable_url: generateShareableURL(),
   };
