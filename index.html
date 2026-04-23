@@ -591,21 +591,6 @@ select.form-input {
 }
 .proj-disclaimer strong { color: var(--navy); font-weight: 700; }
 
-/* Comparison box — vending vs other side hustles, sits below cost of waiting */
-.compare-box {
-  display: flex; align-items: flex-start; gap: 12px;
-  background: var(--bg-light);
-  border: 1.5px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  margin-bottom: 24px;
-  font-size: 13.5px; color: var(--text-mid); line-height: 1.55;
-}
-.compare-icon {
-  font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 1px;
-}
-.compare-text strong { color: var(--navy); font-weight: 700; }
-
 .cta-section {
   background: var(--bg-light);
   border-radius: var(--radius-lg);
@@ -821,8 +806,8 @@ select.form-input {
     <!-- PAYWALL GATE -->
     <div class="paywall-gate" id="paywallGate">
       <div class="paywall-eyebrow">👀 You're almost there</div>
-      <div class="paywall-title">Who should we build this projection for?</div>
-      <div class="paywall-sub">Drop your full name and email and we'll unlock the rest of your custom projection.</div>
+      <div class="paywall-title">We have your projection ready</div>
+      <div class="paywall-sub">Drop your full name and email and we'll send it to you.</div>
       <div class="paywall-form">
         <input type="text" id="paywallName" placeholder="Full name" onkeydown="if(event.key==='Enter'){submitPaywall();}" oninput="clearPaywallError()">
         <input type="email" id="paywallEmail" placeholder="Email address" onkeydown="if(event.key==='Enter'){submitPaywall();}" oninput="clearPaywallError()">
@@ -960,19 +945,13 @@ select.form-input {
       <div class="cw-sub">in potential monthly take-home profit</div>
     </div>
 
-    <!-- Comparison disclaimer — vending vs other "side hustles" -->
-    <div class="compare-box">
-      <span class="compare-icon">📊</span>
-      <span class="compare-text">Other passive income opportunities like <strong>Airbnb</strong>, <strong>Uber</strong>, and <strong>online surveys</strong> are more time-consuming, more risky, and don't generate as much profit.</span>
-    </div>
-
     <!-- ══ CONTACT CAPTURE — all optional ══ -->
     <div class="contact-capture">
       <div style="text-align:center;">
         <div class="cc-optional-badge">All fields optional</div>
       </div>
       <div class="cc-title">💸 So you don't miss any more profits</div>
-      <div class="cc-sub">Drop your info and we'll send your projection, spot locations near you, and share tips that grow your route faster.</div>
+      <div class="cc-sub">Add any other information so that we can get in contact with you.</div>
 
       <div class="cc-grid">
         <div>
@@ -1002,10 +981,10 @@ select.form-input {
         </div>
       </div>
 
-      <div class="cc-save-row">
+      <!-- <div class="cc-save-row">
         <button class="cc-save-btn" onclick="saveContactNow()">Send Me My Info →</button>
         <span class="cc-save-status" id="ccSaveStatus"></span>
-      </div>
+      </div> -->
     </div>
 
     <div class="cta-section">
@@ -1049,9 +1028,6 @@ const SALES_REP = {
   email: 'jasonaaron@modern-amenities.com',
   calendly: 'https://calendly.com/jasonaaron-modern-amenities/30min',
 };
-
-// Paywall trigger: seconds of scrolling before we gate the rest of the form.
-const PAYWALL_DELAY_SECONDS = 10;
 
 // ══════════════════════════════════
 //  SESSION ID
@@ -1106,66 +1082,55 @@ const STEP_NAMES_MAP = { 1: 'Your Route', 2: 'Projection' };
 //  PROPERTY / MACHINE / DATA
 // ══════════════════════════════════
 const PROPERTY_DEFS = [
-  {val:'mid-rise-apartment',   icon:'🏢',   name:'Mid Rise Apartment'},
-  {val:'high-rise-apartment',  icon:'🏙️',   name:'High Rise Apartment'},
-  {val:'garden-style-apartment', icon:'🏘️', name:'Garden Style Apts'},
-  {val:'tower-apartment',      icon:'🏗️',   name:'Tower Apartment'},
-  {val:'office',               icon:'💼',   name:'Office'},
-  {val:'gym',                  icon:'💪',   name:'Gym'},
-  {val:'manufacturing',        icon:'🏭',   name:'Manufacturing'},
-  {val:'warehouse',            icon:'📦',   name:'Warehouse'},
-  {val:'school',               icon:'🎓',   name:'School'},
-  {val:'hospital',             icon:'🏥',   name:'Hospital'},
-  {val:'medical-outpatient',   icon:'🩺',   name:'Medical / Outpatient'},
-  {val:'veterinary',           icon:'🐾',   name:'Veterinary Hospital'},
-  {val:'hotel',                icon:'🏨',   name:'Hotel'},
-  {val:'rec-center',           icon:'🏀',   name:'Rec Center'},
-  {val:'municipal-gov',        icon:'🏛️',   name:'Municipal / Gov'},
-  {val:'shelter',              icon:'🏠',   name:'Shelter'},
-  {val:'other-business',       icon:'🏪',   name:'Other Business'},
+  {val:'apartment',           icon:'🏢', name:'Apartment'},
+  {val:'office-gov',          icon:'💼', name:'Office / Gov Building'},
+  {val:'gym',                 icon:'💪', name:'Gym / Rec Center'},
+  {val:'manufacturing-warehouse', icon:'🏭', name:'Manufacturing / Warehouse'},
+  {val:'medical',             icon:'🏥', name:'Medical (Hospital, Vet, Clinic)'},
+  {val:'school',              icon:'🎓', name:'School'},
+  {val:'hotel',               icon:'🏨', name:'Hotel'},
+  {val:'other',               icon:'🏪', name:'Other'},
 ];
 
+// Maps tile val → display name used in lookup table keys.
 const PROP_NAME_MAP = {
-  'high-rise-apartment':'High Rise Apartment','mid-rise-apartment':'Mid Rise Apartment',
-  'garden-style-apartment':'Garden Style Apartment','tower-apartment':'Tower Style Apartment (1 building)',
-  'office':'Office','warehouse':'Warehouse','manufacturing':'Manufacturing',
-  'gym':'Gym','rec-center':'Rec Center','hospital':'Hospital',
-  'medical-outpatient':'Medical Outpatient Facility','veterinary':'Veterinary Hospital',
-  'hotel':'Hotel','school':'School','municipal-gov':'Municipal/Government Building',
-  'shelter':'Shelter','other-business':'Other Business',
+  'apartment':'Apartment',
+  'office-gov':'Office/Gov',
+  'gym':'Gym',
+  'manufacturing-warehouse':'Manufacturing/Warehouse',
+  'medical':'Medical',
+  'school':'School',
+  'hotel':'Hotel',
+  'other':'Other',
 };
 
-// Unit label (what the denominator represents) per property type.
+// Unit label per bucket. Apartments use unit count (most common across the
+// 4 sub-types); Office/Gov & Manufacturing/Warehouse use employee counts;
+// the rest use daily visitors.
 const UNIT_TYPE_MAP = {
-  'high-rise-apartment': 'units','mid-rise-apartment': 'units',
-  'garden-style-apartment': 'units','tower-apartment': 'units',
-  'office': 'employees','warehouse': 'employees','manufacturing': 'employees',
-  'school': 'employees','municipal-gov': 'employees',
-  'gym': 'daily visitors','rec-center': 'daily visitors','hospital': 'daily visitors',
-  'medical-outpatient': 'daily visitors','veterinary': 'daily visitors',
-  'hotel': 'daily visitors','shelter': 'daily visitors','other-business': 'daily visitors',
+  'apartment':                'units',
+  'office-gov':               'employees',
+  'manufacturing-warehouse':  'employees',
+  'gym':                      'daily visitors',
+  'medical':                  'daily visitors',
+  'school':                   'daily visitors',
+  'hotel':                    'daily visitors',
+  'other':                    'daily visitors',
 };
 
-// Weighted-avg denominators computed from Shared Denominators tab
-// (weighted by N locations, grouped by Property Type only).
+// Weighted-avg denominators per consolidated bucket (weighted by N locations
+// from Shared Denominators tab). Apartments mix unit-count + daily-visitors
+// in source data; combined avg leans toward unit count since that's the
+// dominant denominator type for that bucket.
 const DEFAULT_DENOM = {
-  'garden-style-apartment': 354,
-  'gym': 170,
-  'high-rise-apartment': 318,
-  'hospital': 100,
-  'hotel': 78,
-  'manufacturing': 136,
-  'medical-outpatient': 73,
-  'mid-rise-apartment': 246,
-  'municipal-gov': 294,
-  'office': 114,
-  'other-business': 120,
-  'rec-center': 300,
-  'school': 126,
-  'shelter': 650,
-  'tower-apartment': 274,
-  'veterinary': 97,
-  'warehouse': 74,
+  'apartment':                281,
+  'office-gov':               155,
+  'gym':                      175,
+  'manufacturing-warehouse':  106,
+  'medical':                  85,
+  'school':                   126,
+  'hotel':                    78,
+  'other':                    129,
 };
 
 const MACHINE_DEFS = [
@@ -1183,96 +1148,67 @@ const MACH_NAME_MAP = {
   'micromarket':'Micromarket','other':'Other',
 };
 
-// Recommended machine per property type — DATA-DRIVEN.
-// Computed from Route Group Analysis: highest weighted-avg $/machine/unit
-// per (Property × Machine) combo, with these filters:
-//   - "Other" excluded (poor sales pitch)
-//   - Min 3 locations preferred (statistically defensible)
-//   - Falls back to absolute-best when no machine has ≥3 locations
-// This same machine is what powers the "Use Average" projection — so the
-// recommendation and the revenue numbers stay in sync.
+// Recommended machine per bucket — DATA-DRIVEN.
+// Highest weighted-avg $/machine/unit per (Bucket × Machine), with:
+//   - "Other" excluded
+//   - Min 3 locations preferred (falls back to absolute-best when data thin)
 const DEFAULT_MACHINE_BY_PROP = {
-  'garden-style-apartment':'snacks-drinks-ai',  // 25 locs · $2.91/unit
-  'gym':                   'drink-machine',     // 16 locs · $5.06/unit
-  'high-rise-apartment':   'drink-machine',     // 6 locs · $5.74/unit
-  'hospital':              'drink-machine',     // 1 loc (fallback) · $3.47/unit
-  'hotel':                 'snacks-drinks-ai',  // 1 loc (fallback) · $9.00/unit
-  'manufacturing':         'drink-machine',     // 9 locs · $11.10/unit
-  'medical-outpatient':    'drink-machine',     // 6 locs · $3.82/unit
-  'mid-rise-apartment':    'micromarket',       // 3 locs · $10.24/unit
-  'municipal-gov':         'snacks-drinks-ai',  // 3 locs · $5.41/unit
-  'office':                'micromarket',       // 5 locs · $11.97/unit
-  'other-business':        'micromarket',       // 4 locs · $13.73/unit
-  'rec-center':            'drink-machine',     // 1 loc (fallback) · $7.28/unit
-  'school':                'drink-machine',     // 12 locs · $6.38/unit
-  'shelter':               'snacks-drinks-ai',  // 1 loc (fallback) · $4.96/unit
-  'tower-apartment':       'freezer',           // 1 loc (fallback) · $14.59/unit
-  'veterinary':            'freezer',           // 1 loc (fallback) · $11.47/unit
-  'warehouse':             'drink-machine',     // 11 locs · $19.11/unit
+  'apartment':                'bulk-snacks-frozen', // 4 locs · $7.79/unit
+  'office-gov':               'micromarket',        // 5 locs · $11.97/unit
+  'gym':                      'drink-machine',      // 17 locs · $5.19/unit
+  'manufacturing-warehouse':  'drink-machine',      // 20 locs · $15.51/unit
+  'medical':                  'drink-machine',      // 8 locs · $4.17/unit
+  'school':                   'drink-machine',      // 12 locs · $6.38/unit
+  'hotel':                    'snacks-drinks-ai',   // 1 loc (fallback) · $9.00/unit
+  'other':                    'micromarket',        // 4 locs · $13.73/unit
 };
 
 const DENSITY_NAME_MAP = {
   'major-city':'Major City','city':'City (<1M Population)','suburban':'Suburban','rural':'Rural',
 };
 
-// Blended $/Machine/Unit from Route Group Analysis v5 (full matrix).
+// Bucket × Density × Machine — weighted-avg $/machine/unit recomputed from
+// raw Route Group Analysis data after consolidation. Used by lookupBlendedDPM
+// when the user picks a specific machine type.
 const ROUTE_BLENDED_DPM = {
-  'Garden Style Apartment|City (<1M Population)|Drink Machine':2.25,'Garden Style Apartment|City (<1M Population)|Freezer':2.13,'Garden Style Apartment|City (<1M Population)|Micromarket':2.79,'Garden Style Apartment|City (<1M Population)|Other':3.62,'Garden Style Apartment|City (<1M Population)|Snacks + Drinks (AI)':2.99,
-  'Garden Style Apartment|Major City|Drink Machine':2.95,'Garden Style Apartment|Major City|Micromarket':4.62,'Garden Style Apartment|Major City|Other':9.14,'Garden Style Apartment|Major City|Snacks + Drinks (AI)':3.88,
-  'Garden Style Apartment|Suburban|Drink Machine':1.49,'Garden Style Apartment|Suburban|Micromarket':2.17,'Garden Style Apartment|Suburban|Snacks + Drinks (AI)':1.55,
-  'Gym|City (<1M Population)|Drink Machine':5.09,'Gym|City (<1M Population)|Freezer':10.34,'Gym|City (<1M Population)|Other':4.03,'Gym|City (<1M Population)|Snacks + Drinks (AI)':3.65,
+  'Apartment|City (<1M Population)|Bulk Snacks + Frozen Meals':8.25,'Apartment|City (<1M Population)|Drink Machine':6.67,'Apartment|City (<1M Population)|Freezer':8.36,'Apartment|City (<1M Population)|Micromarket':6.52,'Apartment|City (<1M Population)|Other':6.09,'Apartment|City (<1M Population)|Snacks + Drinks (AI)':7.80,
+  'Apartment|Major City|Bulk Snacks + Frozen Meals':7.33,'Apartment|Major City|Drink Machine':6.85,'Apartment|Major City|Micromarket':4.62,'Apartment|Major City|Other':7.77,'Apartment|Major City|Snacks + Drinks (AI)':6.05,
+  'Apartment|Rural|Drink Machine':5.84,'Apartment|Rural|Freezer':4.72,'Apartment|Rural|Snacks + Drinks (AI)':6.73,
+  'Apartment|Suburban|Drink Machine':3.41,'Apartment|Suburban|Micromarket':2.17,'Apartment|Suburban|Other':6.68,'Apartment|Suburban|Snacks + Drinks (AI)':3.52,
+  'Gym|City (<1M Population)|Drink Machine':5.33,'Gym|City (<1M Population)|Freezer':10.34,'Gym|City (<1M Population)|Other':4.03,'Gym|City (<1M Population)|Snacks + Drinks (AI)':3.65,
   'Gym|Major City|Drink Machine':5.72,'Gym|Major City|Other':4.10,'Gym|Major City|Snacks + Drinks (AI)':5.01,
-  'Gym|Rural|Drink Machine':6.38,'Gym|Suburban|Drink Machine':4.34,'Gym|Suburban|Other':8.29,'Gym|Suburban|Snacks + Drinks (AI)':3.74,
-  'High Rise Apartment|City (<1M Population)|Drink Machine':6.69,'High Rise Apartment|City (<1M Population)|Snacks + Drinks (AI)':7.12,
-  'High Rise Apartment|Major City|Drink Machine':4.21,'High Rise Apartment|Major City|Other':4.80,'High Rise Apartment|Major City|Snacks + Drinks (AI)':5.53,
-  'High Rise Apartment|Rural|Drink Machine':5.84,'High Rise Apartment|Suburban|Drink Machine':4.29,'High Rise Apartment|Suburban|Snacks + Drinks (AI)':4.35,
-  'Hospital|City (<1M Population)|Drink Machine':3.47,'Hospital|City (<1M Population)|Other':5.17,
-  'Hotel|Major City|Snacks + Drinks (AI)':9.00,'Hotel|Rural|Drink Machine':4.81,'Hotel|Rural|Other':11.48,
-  'Manufacturing|City (<1M Population)|Drink Machine':5.74,'Manufacturing|City (<1M Population)|Micromarket':9.57,'Manufacturing|City (<1M Population)|Other':8.04,'Manufacturing|City (<1M Population)|Snacks + Drinks (AI)':6.61,
-  'Manufacturing|Major City|Drink Machine':7.90,'Manufacturing|Major City|Other':7.03,'Manufacturing|Major City|Snacks + Drinks (AI)':8.94,
-  'Manufacturing|Rural|Other':9.59,'Manufacturing|Suburban|Drink Machine':16.72,'Manufacturing|Suburban|Other':19.20,
-  'Medical Outpatient Facility|City (<1M Population)|Drink Machine':3.82,
-  'Mid Rise Apartment|City (<1M Population)|Bulk Snacks + Frozen Meals':8.25,'Mid Rise Apartment|City (<1M Population)|Drink Machine':7.17,'Mid Rise Apartment|City (<1M Population)|Micromarket':10.24,'Mid Rise Apartment|City (<1M Population)|Other':6.50,'Mid Rise Apartment|City (<1M Population)|Snacks + Drinks (AI)':8.74,
-  'Mid Rise Apartment|Major City|Bulk Snacks + Frozen Meals':7.33,'Mid Rise Apartment|Major City|Drink Machine':7.54,'Mid Rise Apartment|Major City|Other':10.29,'Mid Rise Apartment|Major City|Snacks + Drinks (AI)':7.13,
-  'Mid Rise Apartment|Rural|Freezer':4.72,'Mid Rise Apartment|Rural|Snacks + Drinks (AI)':6.73,
-  'Mid Rise Apartment|Suburban|Drink Machine':5.55,'Mid Rise Apartment|Suburban|Other':6.68,'Mid Rise Apartment|Suburban|Snacks + Drinks (AI)':5.41,
-  'Municipal/Government Building|City (<1M Population)|Drink Machine':6.62,'Municipal/Government Building|Major City|Drink Machine':2.74,
-  'Municipal/Government Building|Rural|Drink Machine':3.25,'Municipal/Government Building|Rural|Snacks + Drinks (AI)':7.58,
-  'Municipal/Government Building|Suburban|Drink Machine':1.63,'Municipal/Government Building|Suburban|Snacks + Drinks (AI)':1.08,
-  'Office|City (<1M Population)|Drink Machine':5.23,'Office|City (<1M Population)|Micromarket':11.73,'Office|City (<1M Population)|Snacks + Drinks (AI)':5.54,
-  'Office|Major City|Drink Machine':8.69,'Office|Major City|Micromarket':12.95,'Office|Major City|Other':7.24,'Office|Major City|Snacks + Drinks (AI)':7.61,
-  'Office|Suburban|Drink Machine':5.67,'Office|Suburban|Snacks + Drinks (AI)':4.67,
-  'Other Business|City (<1M Population)|Bulk Snacks + Frozen Meals':12.64,'Other Business|City (<1M Population)|Drink Machine':12.07,'Other Business|City (<1M Population)|Micromarket':15.80,'Other Business|City (<1M Population)|Snacks + Drinks (AI)':12.50,
-  'Other Business|Major City|Drink Machine':7.23,'Other Business|Major City|Freezer':6.64,'Other Business|Major City|Micromarket':7.52,'Other Business|Major City|Other':7.59,'Other Business|Major City|Snacks + Drinks (AI)':4.77,
-  'Other Business|Suburban|Drink Machine':6.34,'Other Business|Suburban|Other':4.29,'Other Business|Suburban|Snacks + Drinks (AI)':4.39,
-  'Rec Center|City (<1M Population)|Drink Machine':7.28,
+  'Gym|Rural|Drink Machine':6.38,
+  'Gym|Suburban|Drink Machine':4.34,'Gym|Suburban|Other':8.29,'Gym|Suburban|Snacks + Drinks (AI)':3.74,
+  'Hotel|Major City|Snacks + Drinks (AI)':9.00,
+  'Hotel|Rural|Drink Machine':4.81,'Hotel|Rural|Other':11.48,
+  'Manufacturing/Warehouse|City (<1M Population)|Drink Machine':11.98,'Manufacturing/Warehouse|City (<1M Population)|Micromarket':9.70,'Manufacturing/Warehouse|City (<1M Population)|Other':9.17,'Manufacturing/Warehouse|City (<1M Population)|Snacks + Drinks (AI)':10.55,
+  'Manufacturing/Warehouse|Major City|Drink Machine':21.08,'Manufacturing/Warehouse|Major City|Other':7.03,'Manufacturing/Warehouse|Major City|Snacks + Drinks (AI)':14.67,
+  'Manufacturing/Warehouse|Rural|Drink Machine':34.73,'Manufacturing/Warehouse|Rural|Other':9.59,
+  'Manufacturing/Warehouse|Suburban|Drink Machine':13.87,'Manufacturing/Warehouse|Suburban|Micromarket':8.49,'Manufacturing/Warehouse|Suburban|Other':19.20,'Manufacturing/Warehouse|Suburban|Snacks + Drinks (AI)':8.99,
+  'Medical|City (<1M Population)|Drink Machine':3.77,'Medical|City (<1M Population)|Freezer':11.47,'Medical|City (<1M Population)|Other':5.17,
+  'Medical|Major City|Other':18.20,
+  'Medical|Suburban|Drink Machine':7.00,
+  'Office/Gov|City (<1M Population)|Drink Machine':5.62,'Office/Gov|City (<1M Population)|Micromarket':11.73,'Office/Gov|City (<1M Population)|Snacks + Drinks (AI)':5.54,
+  'Office/Gov|Major City|Drink Machine':7.95,'Office/Gov|Major City|Micromarket':12.95,'Office/Gov|Major City|Other':7.24,'Office/Gov|Major City|Snacks + Drinks (AI)':7.61,
+  'Office/Gov|Rural|Drink Machine':3.25,'Office/Gov|Rural|Snacks + Drinks (AI)':7.58,
+  'Office/Gov|Suburban|Drink Machine':4.32,'Office/Gov|Suburban|Snacks + Drinks (AI)':2.88,
+  'Other|City (<1M Population)|Bulk Snacks + Frozen Meals':12.64,'Other|City (<1M Population)|Drink Machine':12.07,'Other|City (<1M Population)|Micromarket':15.80,'Other|City (<1M Population)|Snacks + Drinks (AI)':12.50,
+  'Other|Major City|Drink Machine':7.23,'Other|Major City|Freezer':6.64,'Other|Major City|Micromarket':7.52,'Other|Major City|Other':7.59,'Other|Major City|Snacks + Drinks (AI)':4.83,
+  'Other|Suburban|Drink Machine':6.34,'Other|Suburban|Other':4.29,'Other|Suburban|Snacks + Drinks (AI)':4.39,
   'School|City (<1M Population)|Bulk Snacks + Frozen Meals':9.90,'School|City (<1M Population)|Drink Machine':6.38,'School|City (<1M Population)|Other':8.42,'School|City (<1M Population)|Snacks + Drinks (AI)':6.64,
-  'Shelter|Major City|Snacks + Drinks (AI)':4.96,
-  'Tower Style Apartment (1 building)|City (<1M Population)|Drink Machine':5.76,'Tower Style Apartment (1 building)|City (<1M Population)|Freezer':14.59,'Tower Style Apartment (1 building)|City (<1M Population)|Other':8.57,'Tower Style Apartment (1 building)|City (<1M Population)|Snacks + Drinks (AI)':8.57,
-  'Tower Style Apartment (1 building)|Major City|Drink Machine':12.50,
-  'Veterinary Hospital|City (<1M Population)|Freezer':11.47,'Veterinary Hospital|Major City|Other':18.20,'Veterinary Hospital|Suburban|Drink Machine':7.00,
-  'Warehouse|City (<1M Population)|Drink Machine':15.10,'Warehouse|City (<1M Population)|Micromarket':9.83,'Warehouse|City (<1M Population)|Other':11.43,'Warehouse|City (<1M Population)|Snacks + Drinks (AI)':11.86,
-  'Warehouse|Major City|Drink Machine':34.27,'Warehouse|Major City|Snacks + Drinks (AI)':20.40,
-  'Warehouse|Rural|Drink Machine':34.73,'Warehouse|Suburban|Drink Machine':8.17,'Warehouse|Suburban|Micromarket':8.49,'Warehouse|Suburban|Snacks + Drinks (AI)':8.99,
 };
 
+// Bucket × Density fallback (avg across machines, weighted by N locations).
+// Used when no specific Bucket × Density × Machine combo exists.
 const PROP_LOC_AVG_DPM = {
-  'Garden Style Apartment|City (<1M Population)':2.93,'Garden Style Apartment|Major City':4.20,'Garden Style Apartment|Suburban':1.61,
-  'Gym|City (<1M Population)':5.23,'Gym|Major City':4.98,'Gym|Rural':6.38,'Gym|Suburban':4.95,
-  'High Rise Apartment|City (<1M Population)':6.96,'High Rise Apartment|Major City':5.47,'High Rise Apartment|Rural':5.84,'High Rise Apartment|Suburban':4.34,
-  'Hospital|City (<1M Population)':4.32,'Hotel|Major City':9.00,'Hotel|Rural':8.15,
-  'Manufacturing|City (<1M Population)':7.07,'Manufacturing|Major City':7.76,'Manufacturing|Rural':9.59,'Manufacturing|Suburban':17.22,
-  'Medical Outpatient Facility|City (<1M Population)':3.82,
-  'Mid Rise Apartment|City (<1M Population)':8.13,'Mid Rise Apartment|Major City':7.36,'Mid Rise Apartment|Rural':6.06,'Mid Rise Apartment|Suburban':5.66,
-  'Municipal/Government Building|City (<1M Population)':6.62,'Municipal/Government Building|Major City':2.74,'Municipal/Government Building|Rural':6.13,'Municipal/Government Building|Suburban':1.35,
-  'Office|City (<1M Population)':6.48,'Office|Major City':8.51,'Office|Suburban':5.33,
-  'Other Business|City (<1M Population)':12.61,'Other Business|Major City':6.94,'Other Business|Suburban':5.63,
-  'Rec Center|City (<1M Population)':7.28,
+  'Apartment|City (<1M Population)':7.25,'Apartment|Major City':6.22,'Apartment|Rural':6.00,'Apartment|Suburban':3.60,
+  'Gym|City (<1M Population)':5.39,'Gym|Major City':4.98,'Gym|Rural':6.38,'Gym|Suburban':4.95,
+  'Hotel|Major City':9.00,'Hotel|Rural':8.14,
+  'Manufacturing/Warehouse|City (<1M Population)':10.94,'Manufacturing/Warehouse|Major City':15.97,'Manufacturing/Warehouse|Rural':15.88,'Manufacturing/Warehouse|Suburban':12.89,
+  'Medical|City (<1M Population)':4.78,'Medical|Major City':18.20,'Medical|Suburban':7.00,
+  'Office/Gov|City (<1M Population)':6.51,'Office/Gov|Major City':8.12,'Office/Gov|Rural':6.14,'Office/Gov|Suburban':3.74,
+  'Other|City (<1M Population)':12.62,'Other|Major City':6.80,'Other|Suburban':5.64,
   'School|City (<1M Population)':6.96,
-  'Shelter|Major City':4.96,
-  'Tower Style Apartment (1 building)|City (<1M Population)':9.10,'Tower Style Apartment (1 building)|Major City':12.50,
-  'Veterinary Hospital|City (<1M Population)':11.47,'Veterinary Hospital|Major City':18.20,'Veterinary Hospital|Suburban':7.00,
-  'Warehouse|City (<1M Population)':13.40,'Warehouse|Major City':29.64,'Warehouse|Rural':34.73,'Warehouse|Suburban':8.56,
 };
 
 const FALLBACK_DPM = 6.0;
@@ -1338,11 +1274,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const restored = restoreFromURL();
   if (restored) {
     setTimeout(restoreUIFromState, 60);
-    // If state was restored and name was already captured, skip the paywall;
-    // otherwise still arm it.
-    if (!state.paywallUnlocked) startPaywallTimer();
   } else {
-    startPaywallTimer();
     sendToSheet(1, 'started');
   }
 });
@@ -1399,35 +1331,22 @@ function updateProgress() {
 // ══════════════════════════════════
 //  PAYWALL
 // ══════════════════════════════════
-// Trigger: fire the gate after PAYWALL_DELAY_SECONDS of user activity
-// on page (scroll OR clicking a property tile). This keeps quick bouncers
-// from hitting the wall before they've engaged.
+// Trigger: fire the gate as soon as they've picked at least one property
+// tile. The gate sits in a fixed spot in the DOM — we just reveal it in
+// place rather than scrolling to it (less jarring).
 let paywallTriggered = false;
-let paywallTimerStarted = false;
-function startPaywallTimer() {
-  const startIfNeeded = () => {
-    if (paywallTimerStarted || paywallTriggered || state.paywallUnlocked) return;
-    paywallTimerStarted = true;
-    setTimeout(triggerPaywall, PAYWALL_DELAY_SECONDS * 1000);
-  };
-  window.addEventListener('scroll', startIfNeeded, { passive: true });
-  // Also start when they tap a property tile — engagement signal
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('.prop-tile')) startIfNeeded();
-  }, true);
+function maybeTriggerPaywall() {
+  if (paywallTriggered || state.paywallUnlocked) return;
+  if (state.selectedProps.length === 0) return;
+  paywallTriggered = true;
+  document.getElementById('paywallGate').classList.add('visible');
 }
 
 function triggerPaywall() {
+  // Kept for back-compat (validateStep1 calls this). Force-shows the gate.
   if (paywallTriggered || state.paywallUnlocked) return;
   paywallTriggered = true;
-  const gate = document.getElementById('paywallGate');
-  gate.classList.add('visible');
-  // Scroll the gate into view gently
-  setTimeout(() => {
-    gate.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    const input = document.getElementById('paywallName');
-    if (input) input.focus();
-  }, 300);
+  document.getElementById('paywallGate').classList.add('visible');
 }
 
 function clearPaywallError() {
@@ -1505,6 +1424,7 @@ function toggleProp(val) {
   }
   document.getElementById('propError').style.display = 'none';
   renderLocationCards();
+  maybeTriggerPaywall();
 }
 
 // ══════════════════════════════════
@@ -2049,6 +1969,10 @@ function restoreUIFromState() {
   if (state.paywallUnlocked) {
     document.getElementById('gatedContent').classList.remove('paywall-locked');
     document.getElementById('paywallGate').style.display = 'none';
+  } else {
+    // Restored a session that had props selected but didn't unlock yet —
+    // re-show the gate in place so they can finish unlocking.
+    maybeTriggerPaywall();
   }
   // Density
   if (state.density) {
