@@ -1893,6 +1893,13 @@ function computeProjection() {
   }
 
   sendToSheet(2, 'completed');
+
+  // Auto-send the projection summary email — only once per session.
+  // Fire-and-forget; doesn't block the UI even if it fails.
+  if (state.email && !state.projectionEmailSent) {
+    state.projectionEmailSent = true;
+    sendProjectionEmail();
+  }
 }
 
 function row(label, value, cls) {
@@ -2009,6 +2016,61 @@ function restoreUIFromState() {
 // ══════════════════════════════════
 //  GOOGLE SHEET POST
 // ══════════════════════════════════
+function sendProjectionEmail() {
+  // Sends a projection summary email via the same Apps Script webhook.
+  // Backend handles this via ?action=sendProjection (GET — keeps it a simple
+  // request with no CORS preflight; we don't read the response anyway).
+  if (!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.indexOf('REPLACE_WITH') === 0) {
+    console.log('[sendProjectionEmail stub] would send to:', state.email);
+    return;
+  }
+  if (!state.email || !state.projection) return;
+
+  // Build a compact payload — only what the email template needs
+  const placementsArray = [];
+  state.selectedProps.forEach(val => {
+    const cfg = state.locConfigs[val] || {};
+    const units = cfg.units || DEFAULT_DENOM[val] || 150;
+    const machine = cfg.machine || DEFAULT_MACHINE_BY_PROP[val] || 'snacks-drinks-ai';
+    for (let i = 0; i < (cfg.count || 1); i++) {
+      placementsArray.push({
+        property: PROP_NAME_MAP[val] || val,
+        machine: MACH_NAME_MAP[machine] || machine,
+        units: units,
+      });
+    }
+  });
+
+  const payload = {
+    action: 'sendProjection',
+    email: state.email,
+    name: state.name || '',
+    market_density: DENSITY_NAME_MAP[state.density] || '',
+    goal_1: state.goalRank[0] ? (GOAL_LABELS[state.goalRank[0]] || state.goalRank[0]) : '',
+    goal_2: state.goalRank[1] ? (GOAL_LABELS[state.goalRank[1]] || state.goalRank[1]) : '',
+    desired_monthly_profit: state.desiredProfit || '',
+    num_machines: state.projection.num_machines || '',
+    placements: placementsArray,
+    monthly_revenue: state.projection.monthly_revenue,
+    annual_revenue: state.projection.annual_revenue,
+    monthly_profit: state.projection.monthly_profit,
+    annual_profit: state.projection.annual_profit,
+    cost_of_waiting: state.projection.cost_of_waiting,
+    total_asset_value: state.projection.total_asset_value,
+    shareable_url: generateShareableURL(),
+  };
+
+  // Fire-and-forget POST. Apps Script silently ignores `Content-Type:
+  // application/json` from a no-cors fetch (browser downgrades it to text/plain),
+  // and we read e.postData.contents server-side regardless.
+  fetch(SHEET_WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(err => console.warn('[sendProjectionEmail] failed:', err));
+}
+
 function sendToSheet(stepNum, status) {
   // Build the placements array (expanded by count)
   const placementsArray = [];
