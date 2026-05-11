@@ -1281,7 +1281,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function populateRepInfo() {
   const cal = document.getElementById('calendlyEmbed');
-  if (cal && SALES_REP.calendly) cal.setAttribute('data-url', SALES_REP.calendly);
+  if (cal && SALES_REP.calendly) {
+    const name = encodeURIComponent(state.name || '');
+    const email = encodeURIComponent(state.email || '');
+    const url = SALES_REP.calendly + '?name=' + name + '&email=' + email;
+    cal.setAttribute('data-url', url);
+  }
   const nameEl = document.getElementById('repNameDisplay');
   const emailEl = document.getElementById('repEmailLink');
   if (nameEl) nameEl.textContent = SALES_REP.name || '';
@@ -1389,6 +1394,7 @@ function submitPaywall() {
 
   // Immediately sync name + email to the sheet so the rep sees this prospect
   sendToSheet(1, 'name_captured');
+  populateRepInfo();
 }
 
 // ══════════════════════════════════
