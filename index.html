@@ -990,9 +990,7 @@ select.form-input {
     <div class="cta-section">
       <div class="cta-title">📅 Book Your Discovery Call</div>
       <div class="cta-sub">Pick a time that works for you. We'll walk through your numbers in detail.</div>
-      <div class="calendly-inline-widget"
-           data-url=""
-           id="calendlyEmbed"
+      <div id="calendlyEmbed"
            style="min-width:320px;height:700px;margin-top:16px;border-radius:var(--radius);overflow:hidden;"></div>
       <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
 
@@ -1280,13 +1278,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function populateRepInfo() {
-  const cal = document.getElementById('calendlyEmbed');
-  if (cal && SALES_REP.calendly) {
-    const name = encodeURIComponent(state.name || '');
-    const email = encodeURIComponent(state.email || '');
-    const url = SALES_REP.calendly + '?name=' + name + '&email=' + email;
-    cal.setAttribute('data-url', url);
-  }
   const nameEl = document.getElementById('repNameDisplay');
   const emailEl = document.getElementById('repEmailLink');
   if (nameEl) nameEl.textContent = SALES_REP.name || '';
@@ -1294,6 +1285,40 @@ function populateRepInfo() {
     emailEl.textContent = SALES_REP.email;
     emailEl.href = 'mailto:' + SALES_REP.email;
   }
+}
+
+function initCalendly(attempt) {
+  attempt = attempt || 0;
+  const el = document.getElementById('calendlyEmbed');
+  if (!el || !SALES_REP.calendly) return;
+
+  // Wait for Calendly script to load (it's async)
+  if (typeof Calendly === 'undefined' || !Calendly.initInlineWidget) {
+    if (attempt > 40) { // ~10s timeout
+      console.warn('Calendly script never loaded');
+      return;
+    }
+    setTimeout(() => initCalendly(attempt + 1), 250);
+    return;
+  }
+
+  // Split name into first + last (Calendly prefills them separately)
+  const fullName = (state.name || '').trim();
+  const parts = fullName.split(/\s+/);
+  const firstName = parts[0] || '';
+  const lastName = parts.slice(1).join(' ');
+
+  el.innerHTML = '';
+  Calendly.initInlineWidget({
+    url: SALES_REP.calendly,
+    parentElement: el,
+    prefill: {
+      name: fullName,
+      firstName: firstName,
+      lastName: lastName,
+      email: state.email || '',
+    },
+  });
 }
 
 function buildProgress() {
@@ -1394,7 +1419,6 @@ function submitPaywall() {
 
   // Immediately sync name + email to the sheet so the rep sees this prospect
   sendToSheet(1, 'name_captured');
-  populateRepInfo();
 }
 
 // ══════════════════════════════════
@@ -1906,6 +1930,9 @@ function computeProjection() {
     state.projectionEmailSent = true;
     sendProjectionEmail();
   }
+
+  // Init Calendly widget now that Step 2 is visible and name/email are known
+  setTimeout(initCalendly, 300);
 }
 
 function row(label, value, cls) {
