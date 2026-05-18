@@ -1296,17 +1296,28 @@ function initCalendly(attempt) {
   const el = document.getElementById('calendlyEmbed');
   if (!el || !SALES_REP.calendly) return;
 
-  // Wait for Calendly script to load (it's async)
   if (typeof Calendly === 'undefined' || !Calendly.initInlineWidget) {
-    if (attempt > 40) { // ~10s timeout
-      console.warn('Calendly script never loaded');
+    if (attempt > 40) {
+      el.style.height = 'auto';
+      el.innerHTML = `
+        <div style="text-align:center;padding:32px 24px;">
+          <p style="font-size:15px;color:var(--text-mid);margin-bottom:20px;">
+            Click below to pick a time that works for you.
+          </p>
+          <a href="${SALES_REP.calendly}" target="_blank" rel="noopener"
+             style="display:inline-block;background:var(--navy-2);color:white;
+                    padding:16px 32px;border-radius:8px;font-weight:700;
+                    font-size:15px;text-decoration:none;letter-spacing:0.3px;">
+            📅 Book My Discovery Call →
+          </a>
+        </div>
+      `;
       return;
     }
     setTimeout(() => initCalendly(attempt + 1), 250);
     return;
   }
 
-  // Split name into first + last (Calendly prefills them separately)
   const fullName = (state.name || '').trim();
   const parts = fullName.split(/\s+/);
   const firstName = parts[0] || '';
@@ -1324,7 +1335,6 @@ function initCalendly(attempt) {
     },
   });
 }
-
 function buildProgress() {
   const wrap = document.getElementById('progressSteps');
   STEP_LABELS.forEach((lbl, i) => {
